@@ -1,0 +1,32 @@
+{
+  "name": "roomkeeping",
+  "version": "1.0.0",
+  "description": "An app to manage students and roomkeepers in the most time efficient way!",
+  "main": "/server/app.js",
+  "scripts": {
+    "start": "nodemon server/app.js",
+    "react": "cd client && npm start",
+    "build": "cd client && npm install && npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": "14.15.4"
+  },
+  "author": "Anash Shelat",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "config": "^3.3.6",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "joi": "^17.4.2",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^6.0.5",
+    "mongoose-int32": "^0.5.0",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.12"
+  }
+}
