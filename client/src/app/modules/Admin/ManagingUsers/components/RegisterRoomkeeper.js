@@ -1,20 +1,20 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useEffect } from "react";
-import { useSelector, shallowEqual, connect } from "react-redux";
+import { useSelector, shallowEqual } from "react-redux";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import SVG from "react-inlinesvg";
-import { ModalProgressBar } from "../../../_metronic/_partials/controls";
-import { toAbsoluteUrl } from "../../../_metronic/_helpers";
-import * as auth from "../Auth";
+import { ModalProgressBar } from "../../../../../_metronic/_partials/controls";
+import { toAbsoluteUrl } from "../../../../../_metronic/_helpers";
 import Axios from "axios";
-
-function ChangePassword(props) {
-  // Fields
+function RegisterRoomkeeper() {
+    // Fields
   const [loading, setloading] = useState(false);
   const [isError, setisError] = useState(false);
-  const [updated, setUpdated] = useState(false);
+  const [errmsg, setErrmsg] = useState("");
+  const [registered, setRegistered] = useState(false);
   const user = useSelector((state) => state.auth.user, shallowEqual);
+  const role = user.role;
+  const hostel = user.user.hostel;
   useEffect(() => {}, [user]);
   // Methods
   const saveUser = (values, setStatus, setSubmitting) => {
@@ -24,44 +24,43 @@ function ChangePassword(props) {
     setTimeout(() => {
       setloading(false);
       setSubmitting(false);
-      Axios.post("/api/updatePassword", {...values, role:user.role,_id:user.user._id})
-        .then(function(response) {
-          console.log(response);
-          if(response.status === 203){
-            setStatus("Passwords Didn't Match");
+        Axios.post("/api/register/RoomKeeper", {...values, hostel:hostel,role: role})
+          .then(function(response) {
+            setRegistered(false);
+            if(response.status === 203){
+              setStatus("User Already Registered.");
+              setErrmsg(response.data);
+              setisError(true);
+            }else if(response.status === 200){
+              setRegistered(true);
+              formik.handleReset();
+            }
+            setloading(false);
+          })
+          .catch(function(error) {
+            console.log(error);
+            setloading(false);
+            setSubmitting(false);
+            setStatus(error);
             setisError(true);
-          }else if(response.status === 200){
-            setUpdated(true);
-          }
-          setloading(false);
-        })
-        .catch(function(error) {
-          console.log(error);
-          setloading(false);
-          setSubmitting(false);
-          setStatus(error);
-          setisError(true);
-        });
+          });
     }, 1000);
   };
   // UI Helpers
   const initialValues = {
-    currentPassword: "",
+    fullname: "",
+    email: "",
     password: "",
-    cPassword: "",
   };
   const Schema = Yup.object().shape({
-    currentPassword: Yup.string().required("Current password is required"),
-    password: Yup.string().min(3).max(50).required("New Password is required"),
-    cPassword: Yup.string()
-      .required("Password confirmation is required")
-      .when("password", {
-        is: (val) => (val && val.length > 0 ? true : false),
-        then: Yup.string().oneOf(
-          [Yup.ref("password")],
-          "Password and Confirm Password didn't match"
-        ),
-      }),
+    fullname: Yup.string().min(5).max(255).required("Name is required"),
+    password: Yup.string()
+      .min(3)
+      .max(50)
+      .required("New Password is required"),
+    email: Yup.string()
+      .required("E-mail is required")
+      .email(),
   });
   const getInputClasses = (fieldname) => {
     if (formik.touched[fieldname] && formik.errors[fieldname]) {
@@ -81,7 +80,7 @@ function ChangePassword(props) {
       saveUser(values, setStatus, setSubmitting);
     },
     onReset: (values, { resetForm }) => {
-      formik.setValues({...initialValues});
+      formik.setValues({fullname:initialValues.fullname,email:initialValues.email,password:initialValues.password});
     },
   });
 
@@ -93,24 +92,11 @@ function ChangePassword(props) {
       <div className="card-header py-3">
         <div className="card-title align-items-start flex-column">
           <h3 className="card-label font-weight-bolder text-dark">
-            Change Password
+            Register RoomKeeper
           </h3>
           <span className="text-muted font-weight-bold font-size-sm mt-1">
-            Change your account password
+            Registering the roomkeeper for your organization.
           </span>
-        </div>
-        <div className="card-toolbar">
-          <button
-            type="submit"
-            className="btn btn-success mr-2"
-            disabled={
-              formik.isSubmitting || (formik.touched && !formik.isValid)
-            }
-          >
-            Save Changes
-            {formik.isSubmitting}
-          </button>
-          <button type = "reset" className="btn btn-secondary" >Cancel</button>
         </div>
       </div>
       {/* end::Header */}
@@ -131,7 +117,7 @@ function ChangePassword(props) {
                 </span>
               </div>
               <div className="alert-text font-weight-bold">
-                An Error Occured!
+                {errmsg}
               </div>
               <div className="alert-close" onClick={() => setisError(false)}>
                 <button
@@ -147,7 +133,7 @@ function ChangePassword(props) {
               </div>
             </div>
           )}
-          {updated && (
+          {registered && (
             <div
               className="alert alert-custom alert-light-success fade show mb-10"
               role="alert"
@@ -160,9 +146,9 @@ function ChangePassword(props) {
                 </span>
               </div>
               <div className="alert-text font-weight-bold">
-                Password Updated Successfully!
+                RoomKeeper Registered.
               </div>
-              <div className="alert-close" onClick={() => setUpdated(false)}>
+              <div className="alert-close" onClick={() => setRegistered(false)}>
                 <button
                   type="button"
                   className="close"
@@ -179,74 +165,90 @@ function ChangePassword(props) {
           {/* end::Alert */}
           <div className="form-group row">
             <label className="col-xl-3 col-lg-3 col-form-label text-alert">
-              Current Password
+              Full Name
             </label>
             <div className="col-lg-9 col-xl-6">
               <input
-                type="password"
-                placeholder="Current Password"
+                type="text"
+                placeholder="Full Name"
                 className={`form-control form-control-lg form-control-solid mb-2 ${getInputClasses(
-                  "currentPassword"
+                  "fullname"
                 )}`}
-                name="currentPassword"
-                {...formik.getFieldProps("currentPassword")}
+                name="fullname"
+                {...formik.getFieldProps("fullname")}
               />
-              {formik.touched.currentPassword &&
-              formik.errors.currentPassword ? (
+              {formik.touched.fullname &&
+              formik.errors.fullname ? (
                 <div className="invalid-feedback">
-                  {formik.errors.currentPassword}
+                  {formik.errors.fullname}
                 </div>
               ) : null}
-              <a href="#" className="text-sm font-weight-bold">
-                Forgot password ?
-              </a>
             </div>
           </div>
           <div className="form-group row">
             <label className="col-xl-3 col-lg-3 col-form-label text-alert">
-              New Password
+              E-mail
+            </label>
+            <div className="col-lg-9 col-xl-6">
+              <input
+                type="text"
+                placeholder="E Mail"
+                className={`form-control form-control-lg form-control-solid ${getInputClasses(
+                  "email"
+                )}`}
+                name="email"
+                autoComplete="off"
+                {...formik.getFieldProps("email")}
+              />
+              {formik.touched.email && formik.errors.email ? (
+                <div className="invalid-feedback">{formik.errors.email}</div>
+              ) : null}
+            </div>
+          </div>
+          <div className="form-group row">
+            <label className="col-xl-3 col-lg-3 col-form-label text-alert">
+              Password
             </label>
             <div className="col-lg-9 col-xl-6">
               <input
                 type="password"
-                placeholder="New Password"
+                placeholder="Password"
                 className={`form-control form-control-lg form-control-solid ${getInputClasses(
                   "password"
                 )}`}
                 name="password"
+                autoComplete="off"
                 {...formik.getFieldProps("password")}
               />
               {formik.touched.password && formik.errors.password ? (
-                <div className="invalid-feedback">{formik.errors.password}</div>
-              ) : null}
-            </div>
-          </div>
-          <div className="form-group row">
-            <label className="col-xl-3 col-lg-3 col-form-label text-alert">
-              Verify Password
-            </label>
-            <div className="col-lg-9 col-xl-6">
-              <input
-                type="password"
-                placeholder="Verify Password"
-                className={`form-control form-control-lg form-control-solid ${getInputClasses(
-                  "cPassword"
-                )}`}
-                name="cPassword"
-                {...formik.getFieldProps("cPassword")}
-              />
-              {formik.touched.cPassword && formik.errors.cPassword ? (
                 <div className="invalid-feedback">
-                  {formik.errors.cPassword}
+                  {formik.errors.password}
                 </div>
               ) : null}
             </div>
           </div>
+          <div className="form-group row">
+            <label className="col-xl-3 col-lg-3 col-form-label text-alert"></label>
+            <div className="col-lg-9 col-xl-6">
+              <button
+                type="submit"
+                className="btn btn-info font-weight-bold px-9 py-4 my-3"
+                disabled={
+                  formik.isSubmitting || (formik.touched && !formik.isValid)
+                }
+              >
+                Register
+                {formik.isSubmitting}
+              </button>
+              <button type="reset" className="btn btn-secondary font-weight-bold px-9 py-4 my-3 ml-5">
+                Reset
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-      {/* end::Form */}
     </form>
   );
 }
 
-export default connect(null, auth.actions)(ChangePassword);
+export default RegisterRoomkeeper

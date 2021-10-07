@@ -5,10 +5,9 @@ import React from "react";
 import { AdminDashboard } from "./AdminDashboard";
 import { RoomkeeperDashboard } from "./RoomkeeperDashboard";
 import StudentDashboard from "./StudentDashboard";
-import { useSelector } from "react-redux";
 import { ContentRoute } from "../../layout";
 // eslint-disable-next-line
-import { Redirect, Switch } from "react-router-dom";
+import { Switch } from "react-router-dom";
 
 export function Dashboard() {
   // const uiService = useHtmlClassService();
@@ -19,16 +18,8 @@ export function Dashboard() {
   //             "demo"
   //         )};
   // }, [uiService]);
-  const role = useSelector((redux) => redux.auth.user.role);
   return (
     <>
-      {role === "admin" ? (
-        <Redirect exact from="/dashboard" to="/dashboard/admin" />
-      ) : role === "roomkeeper" ? (
-        <Redirect exact from="/dashboard" to="/dashboard/roomkeeper" />
-      ) : (
-        <Redirect exact from="/dashboard" to="/dashboard/student" />
-      )}
       <Switch>
         <ContentRoute path="/dashboard/admin" component={AdminDashboard} />
         <ContentRoute

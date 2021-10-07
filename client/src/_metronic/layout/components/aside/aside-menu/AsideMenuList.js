@@ -2,6 +2,7 @@
 /* eslint-disable no-script-url,jsx-a11y/anchor-is-valid */
 import React from "react";
 import { useLocation } from "react-router";
+import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import SVG from "react-inlinesvg";
 import { toAbsoluteUrl, checkIsActive } from "../../../../_helpers";
@@ -14,17 +15,18 @@ export function AsideMenuList({ layoutProps }) {
           "menu-item-active"} menu-item-open menu-item-not-hightlighted`
       : "";
   };
-
+  const role = useSelector(({ auth }) => auth.user.role);
   return (
     <>
       {/* begin::Menu Nav */}
       <ul className={`menu-nav ${layoutProps.ulClasses}`}>
+        {/* -------------------------------------------------------General----------------------------------------------------- */}
         {/*begin::Dashboard*/}
         <li
           className={`menu-item ${getMenuItemActive("/dashboard", false)}`}
           aria-haspopup="true"
         >
-          <NavLink className="menu-link" to="/dashboard">
+          <NavLink className="menu-link" to={`/dashboard/${role}`}>
             <span className="svg-icon menu-icon">
               <SVG src={toAbsoluteUrl("/media/svg/icons/Design/Layers.svg")} />
             </span>
@@ -32,7 +34,19 @@ export function AsideMenuList({ layoutProps }) {
           </NavLink>
         </li>
         {/*end::Dashboard*/}
-
+        {/*begin::Clean Requests*/}
+        <li
+          className={`menu-item ${getMenuItemActive("/clean-requests", false)}`}
+          aria-haspopup="true"
+        >
+          <NavLink className="menu-link" to="/clean-requests">
+            <span className="svg-icon menu-icon">
+              <SVG src={toAbsoluteUrl("/media/svg/icons/Home/Broom.svg")} />
+            </span>
+            <span className="menu-text">Clean Requests</span>
+          </NavLink>
+        </li>
+        {/*end::Clean Requests*/}
         {/*begin::User Profile*/}
         <li
           className={`menu-item ${getMenuItemActive("/user-profile", false)}`}
@@ -51,14 +65,108 @@ export function AsideMenuList({ layoutProps }) {
         </li>
         {/*end::User Profile*/}
 
-        {/* Custom */}
+        {/* ------------------------------------------------Feedback------------------------------------------------------------ */}
+        {/* begin::section */}
+        {role === "admin" && (
+          <>
+            <li className="menu-section ">
+              <h4 className="menu-text">Feedback</h4>
+              <i className="menu-icon flaticon-more-v2"></i>
+            </li>
+            {/* end:: section */}
+
+            {/*begin::Complaints*/}
+            <li
+              className={`menu-item ${getMenuItemActive(
+                "/admin/complaints",
+                false
+              )}`}
+              aria-haspopup="true"
+            >
+              <NavLink className="menu-link" to="/admin/complaints">
+                <span className="svg-icon menu-icon">
+                  <SVG src={toAbsoluteUrl("/media/svg/icons/Code/Spy.svg")} />
+                </span>
+                <span className="menu-text">Complaints</span>
+              </NavLink>
+            </li>
+            {/*end::Roomkeeper*/}
+
+            {/*begin::Student*/}
+            <li
+              className={`menu-item ${getMenuItemActive(
+                "/admin/suggestions",
+                false
+              )}`}
+              aria-haspopup="true"
+            >
+              <NavLink className="menu-link" to="/admin/suggestions">
+                <span className="svg-icon menu-icon">
+                  <SVG
+                    src={toAbsoluteUrl("/media/svg/icons/Shopping/Box1.svg")}
+                  />
+                </span>
+                <span className="menu-text">Suggestions</span>
+              </NavLink>
+            </li>
+            {/*end::Student*/}
+
+            {/* --------------------------------------------------Registration-------------------------------------------------------- */}
+            {/* begin::section */}
+            <li className="menu-section ">
+              <h4 className="menu-text">Manage Users</h4>
+              <i className="menu-icon flaticon-more-v2"></i>
+            </li>
+            {/* end:: section */}
+
+            {/*begin::RoomKeeper*/}
+            <li
+              className={`menu-item ${getMenuItemActive(
+                "/manage/roomkeeper",
+                false
+              )}`}
+              aria-haspopup="true"
+            >
+              <NavLink className="menu-link" to="/manage/roomkeeper">
+                <span className="svg-icon menu-icon">
+                  <SVG
+                    src={toAbsoluteUrl("/media/svg/icons/Home/Chair2.svg")}
+                  />
+                </span>
+                <span className="menu-text">RoomKeepers</span>
+              </NavLink>
+            </li>
+            {/*end::Roomkeeper*/}
+
+            {/*begin::Student*/}
+            <li
+              className={`menu-item ${getMenuItemActive(
+                "/manage/student",
+                false
+              )}`}
+              aria-haspopup="true"
+            >
+              <NavLink className="menu-link" to="/manage/student">
+                <span className="svg-icon menu-icon">
+                  <SVG
+                    src={toAbsoluteUrl("/media/svg/icons/Home/Book-open.svg")}
+                  />
+                </span>
+                <span className="menu-text">Students</span>
+              </NavLink>
+            </li>
+            {/*end::Student*/}
+          </>
+        )}
+
+        {/* --------------------------------------------------Custom------------------------------------------------------------- */}
         {/* begin::section */}
         <li className="menu-section ">
           <h4 className="menu-text">Custom</h4>
           <i className="menu-icon flaticon-more-v2"></i>
         </li>
         {/* end:: section */}
-        
+
         {/*begin::Layout Builder*/}
         <li
           className={`menu-item ${getMenuItemActive("/builder", false)}`}

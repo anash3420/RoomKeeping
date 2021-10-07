@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { useSelector, shallowEqual, connect, useDispatch } from "react-redux";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -7,6 +6,8 @@ import { ModalProgressBar } from "../../../_metronic/_partials/controls";
 import { toAbsoluteUrl } from "../../../_metronic/_helpers";
 import * as auth from "../Auth";
 import Axios from "axios";
+import { isNull } from "lodash";
+import { Button } from "react-bootstrap";
 
 function PersonaInformation(props) {
   // Fields
@@ -17,22 +18,27 @@ function PersonaInformation(props) {
   const user = useSelector((state) => state.auth.user.user, shallowEqual);
   const role = useSelector(({ auth }) => auth.user.role, shallowEqual);
   useEffect(() => {
-    if (user.pic) {
-      setPic(user.pic);
+    if (user.profileimg) {
+      setPic(user.profileimg);
     }
   }, [user]);
   // Methods
   const saveUser = (values, setStatus, setSubmitting) => {
     setloading(true);
-    // const updatedUser = Object.assign(user, values);
-    // console.log("Updated user:",updatedUser);
+    console.log(values);
+    const formData = new FormData();
+    !isNull(values.profileimg) && formData.append('profileimg',values.profileimg);
+    formData.append('name',values.name);
+    formData.append('phone',values.phone);
+    formData.append('email',values.email);
+    formData.append('role',role);
+    formData.append('id',user._id);
+    formData.append('changeimg',values.changeimg);
     // user for update preparation
-    // dispatch(props.setUser(updatedUser));
     setTimeout(() => {
       setloading(false);
       setSubmitting(false);
-      // Do request to your server for user update, we just imitate user update there, For example:
-      Axios.post("/api/updateUser", { ...values, role, id: user._id })
+      Axios.post("/api/updateUser", formData)
         .then(function(response) {
           setUpdated(true);
           dispatch(props.setUser({ user: response.data, role: role }));
@@ -48,13 +54,15 @@ function PersonaInformation(props) {
   };
   // UI Helpers
   const initialValues = {
-    pic: user.pic,
+    changeimg: false,
+    profileimg: (user.profileimg ? user.profileimg : ''),
     name: user.name,
     phone: user.phone,
     email: user.email,
   };
   const Schema = Yup.object().shape({
-    pic: Yup.string(),
+    changeimg:Yup.bool(),
+    profileimg: Yup.mixed(),
     name: Yup.string().required("Name is required"),
     phone: Yup.string()
       .length(10)
@@ -81,7 +89,7 @@ function PersonaInformation(props) {
       saveUser(values, setStatus, setSubmitting);
     },
     onReset: (values, { resetForm }) => {
-      resetForm();
+      formik.setValues({...initialValues});
     },
   });
   const getUserPic = () => {
@@ -92,12 +100,21 @@ function PersonaInformation(props) {
     return `url(${pic})`;
   };
   const removePic = () => {
-    setPic("");
+    setPic(null);
+    formik.setFieldValue("profileimg",null);
+    formik.setFieldValue("changeimg",true);
   };
+  const handlePhoto = (e) => {
+    setPic(URL.createObjectURL(e.target.files[0]));
+    formik.setFieldValue("profileimg",e.target.files[0]);
+    formik.setFieldValue("changeimg",true);
+  }
   return (
     <form
       className="card card-custom card-stretch"
       onSubmit={formik.handleSubmit}
+      onReset={formik.handleReset}
+      encType = "multipart/form-data"
     >
       {loading && <ModalProgressBar />}
 
@@ -122,12 +139,12 @@ function PersonaInformation(props) {
             Save Changes
             {formik.isSubmitting}
           </button>
-          <Link
-            to="/user-profile/profile-overview"
+          <Button
             className="btn btn-secondary"
+            type = 'reset'
           >
             Cancel
-          </Link>
+          </Button>
         </div>
       </div>
       {/* end::Header */}
@@ -136,7 +153,7 @@ function PersonaInformation(props) {
         {/* begin::Body */}
         <div className="card-body">
           { updated && (<div className="alert alert-custom alert-light-success alert-dismissible col-lg-12">
-            <div className="font-weight-bold alert-text">User Updated Successfully!</div>
+            <div className="font-weight-bold alert-text">Details Updated Successfully!</div>
           </div>)}
           <div className="row">
             <label className="col-xl-3"></label>
@@ -170,8 +187,9 @@ function PersonaInformation(props) {
                   <i className="fa fa-pen icon-sm text-muted"></i>
                   <input
                     type="file"
-                    // name="pic"
+                    name="profileimg"
                     accept=".png, .jpg, .jpeg"
+                    onChange = {handlePhoto}
                     // {...formik.getFieldProps("pic")}
                   />
                   <input type="hidden" name="profile_avatar_remove" />

@@ -7,10 +7,10 @@ import { toAbsoluteUrl } from "../../../../_metronic/_helpers";
 
 export function ProfileCard() {
   const user = useSelector(({ auth }) => auth.user.user, shallowEqual);
-  const role = useSelector(({auth}) => auth.user.role,shallowEqual);
+  const role = useSelector(({ auth }) => auth.user.role, shallowEqual);
   useEffect(() => {
     return () => {};
-  }, [user,role]);
+  }, [user, role]);
 
   return (
     <>
@@ -44,7 +44,7 @@ export function ProfileCard() {
                 <div className="symbol symbol-60 symbol-xxl-100 mr-5 align-self-start align-self-xxl-center">
                   <div
                     className="symbol-label"
-                    style={{ backgroundImage: `url(${user.pic})` }}
+                    style={{ backgroundImage: `url(${user.profileimg ? user.profileimg : toAbsoluteUrl("/media/users/blank.png")})` }}
                   ></div>
                   {/* style="background-i
                   mage:url('/metronic/theme/html/demo1/dist/assets/media/users/300_21.jpg')" */}
@@ -57,7 +57,9 @@ export function ProfileCard() {
                   >
                     {user.name}
                   </a>
-                  <div className="text-muted">{role[0].toUpperCase()+role.slice(1)}</div>
+                  <div className="text-muted">
+                    {role[0].toUpperCase() + role.slice(1)}
+                  </div>
                 </div>
               </div>
               {/* end::User */}
@@ -71,8 +73,33 @@ export function ProfileCard() {
                 </div>
                 <div className="d-flex align-items-center justify-content-between mb-2">
                   <span className="font-weight-bold mr-2">Phone:</span>
-                  <span className="text-muted">{user.phone ? user.phone : "- N. A. -"}</span>
+                  <span className="text-muted">
+                    {user.phone ? user.phone : "- N. A. -"}
+                  </span>
                 </div>
+                {role === "student" && (
+                  <>
+                    <div className="d-flex align-items-center justify-content-between mb-2">
+                      <span className="font-weight-bold mr-2">Room Number:</span>
+                      <span className="text-muted">
+                        {user.room}
+                      </span>
+                    </div>
+                    <div className="d-flex align-items-center justify-content-between mb-2">
+                      <span className="font-weight-bold mr-2">Floor:</span>
+                      <span className="text-muted">
+                        {user.floor}
+                      </span>
+                    </div>
+                  </>
+                )}
+                 {/* To-Do */}
+                {role === "roomkeeper" && (
+                  <div className="d-flex align-items-center justify-content-between mb-2">
+                  <span className="font-weight-bold mr-2">Ratings:</span>
+                  <span className="text-muted">{user.ratings ? user.ratings : "- N. A. -"}</span>
+                  </div>
+                )}
                 <div className="d-flex align-items-center justify-content-between mb-2">
                   <span className="font-weight-bold mr-2">Organization:</span>
                   <span className="text-muted">{user.hostel}</span>

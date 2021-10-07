@@ -41,7 +41,7 @@ export function QuickUser() {
             <div
               className="symbol-label"
               style={{
-                backgroundImage: `url(${user.pic})`,
+                backgroundImage: `url(${user.profileimg ? user.profileimg: toAbsoluteUrl("/media/users/blank.png")})`,
               }}
             />
             <i className="symbol-badge bg-success" />

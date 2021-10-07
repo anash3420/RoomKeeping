@@ -74,8 +74,7 @@ export function UserProfileDropdown() {
               }}
             >
               <div className="symbol bg-white-o-15 mr-3">
-                <span className="symbol-label text-success font-weight-bold font-size-h4">
-                  {user.name[0].toUpperCase()}
+                <span className="symbol-label" style={{backgroundImage: `url(${user.profileimg ? user.profileimg: toAbsoluteUrl("/media/users/blank.png")})`}}>
                 </span>
                 {/*<img alt="Pic" className="hidden" src={user.pic} />*/}
               </div>

@@ -4,12 +4,8 @@ import {Formik} from "formik";
 import {get, merge} from "lodash";
 import {FormHelperText, Switch} from "@material-ui/core";
 import clsx from "clsx";
-// https://github.com/conorhastings/react-syntax-highlighter#prism
-import {Prism as SyntaxHighlighter} from "react-syntax-highlighter";
-// See https://github.com/PrismJS/prism-themes
-import {coy as highlightStyle} from "react-syntax-highlighter/dist/esm/styles/prism";
 import {useHtmlClassService, setLayoutConfig, getInitLayoutConfig} from "../../layout";
-import {Card, CardBody, CardHeader, Notice} from "../controls";
+import {Notice} from "../controls";
 
 const localStorageActiveTabKey = "builderActiveTab";
 
@@ -525,33 +521,6 @@ export function Builder() {
                                 </div>
                             </div>
                         </div>
-
-                        {/*Config*/}
-                        <Card className="mt-4">
-                            <CardHeader
-                                title={
-                                    <>
-                                        Generated Config{" "}
-                                        <small>
-                                            can be used for layout config in{" "}
-                                            <code>/src/_metronic/layout/LayoutConfig.js</code>
-                                        </small>
-                                    </>
-                                }
-                            />
-
-                            <CardBody>
-                                <SyntaxHighlighter
-                                    language="json"
-                                    style={highlightStyle}
-                                    customStyle={{
-                                        background: `none transparent !important`
-                                    }}
-                                >
-                                    {JSON.stringify(values, null, 2)}
-                                </SyntaxHighlighter>
-                            </CardBody>
-                        </Card>
                     </>
                 )}
             </Formik>

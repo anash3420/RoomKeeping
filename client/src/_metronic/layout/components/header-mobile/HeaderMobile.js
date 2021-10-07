@@ -29,7 +29,7 @@ export function HeaderMobile() {
         >
           {/*begin::Logo*/}
           <Link to="/">
-            <img alt="logo" src={layoutProps.headerLogo}/>
+            <img alt="logo" src={layoutProps.headerLogo} height="36px"/>
           </Link>
           {/*end::Logo*/}
 

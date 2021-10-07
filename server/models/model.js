@@ -6,35 +6,43 @@ const secret = process.env.SECRET;
 //Creating Schema 
 
 const adminSchema = new mongoose.Schema({
-    id: mongoose.ObjectId,
     name: String,
     hostel: String,
     email: String,
     password: String,
-    phone: Number
+    phone: Number,
+    profileimg: {
+      data: Buffer,
+      contentType: String
+    }
   })
   const roomkeeperSchema = new mongoose.Schema({
-    id: mongoose.ObjectId,
     name: String,
     password: String,
     phone: Number,
     email: String,
     hostel: String,
+    profileimg: {
+      data: Buffer,
+      contentType: String
+    },
     ratings:[],
     complaints:[],
   })
   const studentSchema = new mongoose.Schema({
-    id:mongoose.ObjectId,
     name: String,
     password: String,
     phone: Number,
     email: String,
     hostel: String,
+    profileimg: {
+      data: Buffer,
+      contentType: String
+    },
     floor: Number,
-    roomNumber: Number
+    room: String
   })
   const cleanRequestSchema = new mongoose.Schema({
-    id: mongoose.ObjectId,
     studentId: String,
     roomkeeperId: String,
     time: String,
@@ -44,7 +52,6 @@ const adminSchema = new mongoose.Schema({
     requestStatus: Boolean
   })
   const complaintSchema = new mongoose.Schema({
-    id: mongoose.ObjectId,
     feedbackId: String,
     studentId: String,
     details: {
@@ -53,7 +60,6 @@ const adminSchema = new mongoose.Schema({
     }
   })
   const suggestionSchema = new mongoose.Schema({
-    id: mongoose.ObjectId,
     feedbackId: String,
     studentId: String,
     details: {
@@ -62,7 +68,6 @@ const adminSchema = new mongoose.Schema({
     }
   })
   const feedbackSchema = new mongoose.Schema({
-    id: mongoose.ObjectId,
     studentId: String,
     requestId: String,
     rating:Number,
