@@ -1,9 +1,33 @@
-import React from "react";
-
-export function RoomkeeperDashboard() {
+import React, { useEffect } from "react";
+import RoomKeeperDashboardTable from "../widgets/advance-tables/RoomKeeperDashboardTable";
+import RoomKeeperCards from "../cards/RoomKeeperCards";
+import Axios from "axios";
+import { useSelector,shallowEqual } from "react-redux";
+export default function RoomkeeperDashboard() {
+  const [data, setData] = React.useState({});
+  const user = useSelector((state) => state.auth.user, shallowEqual);
+  const roomKeeperId = user.user._id;
+  const hostel = user.user.hostel;
+  useEffect(() => {
+    Axios.get(`/api/roomkeeper/dashboard?id=${roomKeeperId}`)
+      .then((res) => {
+        console.log(res);
+        setData(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, [roomKeeperId]);
   return (
     <>
-      <h1>Hi,I'm Roomkeeper</h1>
+      <RoomKeeperCards requests={data.requests} complaints={data.complaints} scheduled={data.scheduled} />
+      <br />
+      <br />
+      <div className="row">
+        <div className="col-lg-12 col-xxl-12">
+          <RoomKeeperDashboardTable hostel={hostel}/>
+        </div>
+      </div>
     </>
   );
 }

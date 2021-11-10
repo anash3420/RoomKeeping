@@ -6,6 +6,7 @@ import { useSelector, shallowEqual } from "react-redux";
 import objectPath from "object-path";
 import { useHtmlClassService } from "../../_core/MetronicLayout";
 import { UserProfileDropdown } from "./dropdowns/UserProfileDropdown";
+import { toAbsoluteUrl } from "../../../_helpers";
 
 export function QuickUserToggler() {
   const user = useSelector((state) => state.auth.user.user, shallowEqual);
@@ -37,9 +38,16 @@ export function QuickUserToggler() {
                   {user.name}
                 </span>
                 <span className="symbol symbol-35 symbol-light-success">
-                  <span className="symbol-label font-size-h5 font-weight-bold">
-                    {user.name[0]}
-                  </span>
+                  <span
+                    className="symbol-label"
+                    style={{
+                      backgroundImage: `url(${
+                        user.profileimg
+                          ? user.profileimg
+                          : toAbsoluteUrl("/media/users/blank.png")
+                      })`,
+                    }}
+                  ></span>
                 </span>
               </>
             </div>

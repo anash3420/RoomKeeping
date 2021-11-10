@@ -8,12 +8,14 @@ import { ModalProgressBar } from "../../../_metronic/_partials/controls";
 import { toAbsoluteUrl } from "../../../_metronic/_helpers";
 import * as auth from "../Auth";
 import Axios from "axios";
+import { Link,useHistory } from "react-router-dom";
 
 function ChangePassword(props) {
   // Fields
   const [loading, setloading] = useState(false);
   const [isError, setisError] = useState(false);
   const [updated, setUpdated] = useState(false);
+  const history = useHistory()
   const user = useSelector((state) => state.auth.user, shallowEqual);
   useEffect(() => {}, [user]);
   // Methods
@@ -197,9 +199,10 @@ function ChangePassword(props) {
                   {formik.errors.currentPassword}
                 </div>
               ) : null}
-              <a href="#" className="text-sm font-weight-bold">
-                Forgot password ?
-              </a>
+              <Link className="text-sm font-weight-bold" to="#" onClick={() => {history.push('/logout');}} >
+              
+              Forgot Password ? 
+              </Link>
             </div>
           </div>
           <div className="form-group row">

@@ -181,15 +181,15 @@ function Login(props) {
               labelPlacement="end"
             />
             <FormControlLabel
-              value="student"
-              control={<Radio color="secondary" />}
-              label="Student"
-              labelPlacement="end"
-            />
-            <FormControlLabel
               value="roomkeeper"
               control={<Radio color="primary" />}
               label="Roomkeeper"
+              labelPlacement="end"
+            />
+            <FormControlLabel
+              value="student"
+              control={<Radio color="secondary" />}
+              label="Student"
               labelPlacement="end"
             />
           </RadioGroup>

@@ -3,7 +3,7 @@ import React from "react";
 // import { Demo2Dashboard } from "./Demo2Dashboard";
 // import { Demo3Dashboard } from "./Demo3Dashboard";
 import { AdminDashboard } from "./AdminDashboard";
-import { RoomkeeperDashboard } from "./RoomkeeperDashboard";
+import  RoomkeeperDashboard  from "./RoomkeeperDashboard";
 import StudentDashboard from "./StudentDashboard";
 import { ContentRoute } from "../../layout";
 // eslint-disable-next-line

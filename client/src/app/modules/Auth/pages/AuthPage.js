@@ -6,6 +6,7 @@ import { ContentRoute } from "../../../../_metronic/layout";
 import Login from "./Login";
 import Registration from "./Registration";
 import ForgotPassword from "./ForgotPassword";
+import ResetPassword from "./ResetPassword";
 import "../../../../_metronic/_assets/sass/pages/login/classic/login-1.scss";
 
 export function AuthPage() {
@@ -115,6 +116,10 @@ export function AuthPage() {
                 <ContentRoute
                   path="/auth/forgot-password"
                   component={ForgotPassword}
+                />
+                <ContentRoute
+                  path="/auth/reset-password/:role/:userid/:token"
+                  component={ResetPassword}
                 />
                 <Redirect from="/auth" exact={true} to="/auth/login" />
                 <Redirect to="/auth/login" />

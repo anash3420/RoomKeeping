@@ -3,43 +3,55 @@ import { useSelector, shallowEqual } from "react-redux";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import SVG from "react-inlinesvg";
-import { ModalProgressBar } from "../../../../../_metronic/_partials/controls";
-import { toAbsoluteUrl } from "../../../../../_metronic/_helpers";
+import { ModalProgressBar } from "../../../../_metronic/_partials/controls";
+import { toAbsoluteUrl } from "../../../../_metronic/_helpers";
 import Axios from "axios";
-
-function RegisterStudent(props) {
-    // Fields
+import DatePicker from "react-datepicker";
+import { setHours, setMinutes } from "date-fns";
+import { TextareaAutosize } from "@material-ui/core";
+import moment from "moment";
+function StudentRequestForm(props) {
+  // Fields
   const [loading, setloading] = useState(false);
   const [isError, setisError] = useState(false);
   const [errmsg, setErrmsg] = useState("");
-  const [registered, setRegistered] = useState(false);
+  const [created, setCreated] = useState(false);
   const user = useSelector((state) => state.auth.user, shallowEqual);
-  const role = user.role;
+  const studentid = user.user._id;
   const hostel = user.user.hostel;
+  const room = user.user.room;
+  const floor = user.user.floor;
   useEffect(() => {}, [user]);
   // Methods
-  const saveUser = (values, setStatus, setSubmitting) => {
+  const createRequest = (values, setStatus, setSubmitting) => {
+    const date = moment(values.date).format("Do MMMM, yyyy")
+    const time = moment(values.time).format("LT");
     setloading(true);
     setisError(false);
     // user for update preparation
     setTimeout(() => {
       setloading(false);
       setSubmitting(false);
-      Axios.post("/api/register/Student", {
-        ...values,
-        hostel: hostel,
-        role: role,
+      Axios.post("/api/clean-request/create", {
+        date,
+        time,
+        studentid,
+        hostel,
+        room,
+        floor,
+        message: values.message,
       })
         .then(function(response) {
-          setRegistered(false);
+          setCreated(false);
           if (response.status === 203) {
-            setStatus("User Already Registered.");
+            setStatus(response.data);
             setErrmsg(response.data);
             setisError(true);
           } else if (response.status === 200) {
-            setRegistered(true);
+            setCreated(true);
             formik.handleReset();
-            props.onUpdate();
+            props.onCreate();
+            // setTimeout(() => {setCreated(false)}, 5000);
           }
           setloading(false);
         })
@@ -47,33 +59,21 @@ function RegisterStudent(props) {
           console.log(error);
           setloading(false);
           setSubmitting(false);
-          setStatus(error);
+          setStatus("An Error Occured");
           setisError(true);
         });
     }, 1000);
   };
   // UI Helpers
   const initialValues = {
-    fullname: "",
-    email: "",
-    password: "",
-    room: "",
-    floor: "",
+    date: "",
+    time: "",
+    message: "",
   };
   const Schema = Yup.object().shape({
-    fullname: Yup.string()
-      .min(5)
-      .max(255)
-      .required("Name is required"),
-    password: Yup.string()
-      .min(3)
-      .max(50)
-      .required("New Password is required"),
-    email: Yup.string()
-      .required("E-mail is required")
-      .email(),
-    room: Yup.string().required("Room Number is Required"),
-    floor: Yup.number().integer().required("Floor is Required"),
+    date: Yup.string().required("Date is required"),
+    time: Yup.string().required("Time is required"),
+    message: Yup.string().max(100),
   });
   const getInputClasses = (fieldname) => {
     if (formik.touched[fieldname] && formik.errors[fieldname]) {
@@ -90,15 +90,12 @@ function RegisterStudent(props) {
     initialValues,
     validationSchema: Schema,
     onSubmit: (values, { setStatus, setSubmitting }) => {
-      saveUser(values, setStatus, setSubmitting);
+      createRequest(values, setStatus, setSubmitting);
     },
-    onReset: (values, { resetForm }) => {
+    onReset: () => {
       formik.setValues({
-        fullname: initialValues.fullname,
-        email: initialValues.email,
-        password: initialValues.password,
-        room: initialValues.room,
-        floor: initialValues.floor,
+        date: initialValues.date,
+        time: initialValues.time,
       });
     },
   });
@@ -115,10 +112,10 @@ function RegisterStudent(props) {
       <div className="card-header py-3">
         <div className="card-title align-items-start flex-column">
           <h3 className="card-label font-weight-bolder text-dark">
-            Register Student
+            Create Request
           </h3>
           <span className="text-muted font-weight-bold font-size-sm mt-1">
-            Registering the Student for your organization.
+            Creating the Clean Request for your Room.
           </span>
         </div>
       </div>
@@ -154,7 +151,7 @@ function RegisterStudent(props) {
               </div>
             </div>
           )}
-          {registered && (
+          {created && (
             <div
               className="alert alert-custom alert-light-success fade show mb-10"
               role="alert"
@@ -167,9 +164,9 @@ function RegisterStudent(props) {
                 </span>
               </div>
               <div className="alert-text font-weight-bold">
-                Student Registered.
+                Request Successflly Created.
               </div>
-              <div className="alert-close" onClick={() => setRegistered(false)}>
+              <div className="alert-close" onClick={() => setCreated(false)}>
                 <button
                   type="button"
                   className="close"
@@ -186,95 +183,85 @@ function RegisterStudent(props) {
           {/* end::Alert */}
           <div className="form-group row">
             <label className="col-xl-3 col-lg-3 col-form-label text-alert">
-              Full Name
+              Schedule Clean Request:
             </label>
-            <div className="col-lg-9 col-xl-6">
-              <input
-                type="text"
-                placeholder="Full Name"
-                className={`form-control form-control-lg form-control-solid mb-2 ${getInputClasses(
-                  "fullname"
+
+            <div className="col-lg-3 col-xl-3 col-md-4 col-sm-6 mb-4">
+              <DatePicker
+                placeholderText="Date"
+                dateFormat="dd MMMM, yyyy"
+                className={`form-control form-control-lg form-control-solid ${getInputClasses(
+                  "date"
                 )}`}
-                name="fullname"
-                {...formik.getFieldProps("fullname")}
+                style={{ width: "100%" }}
+                {...formik.getFieldProps("date")}
+                selected={formik.values.date}
+                onChange={(val) => {
+                  formik.setFieldValue("date", val);
+                }}
+                minDate={new Date().setDate(new Date().getDate() + 1)}
               />
-              {formik.touched.fullname && formik.errors.fullname ? (
-                <div className="invalid-feedback">{formik.errors.fullname}</div>
+              {formik.touched.date && formik.errors.date ? (
+                <div className="invalid-feedback">{formik.errors.date}</div>
+              ) : null}
+            </div>
+            <div className="col-lg-3 col-xl-3 col-md-4 col-sm-6 mb-4">
+              <DatePicker
+                placeholderText="Time"
+                dateFormat="h:mm aa"
+                showTimeSelect
+                showTimeSelectOnly
+                timeIntervals={30}
+                timeClassName={(time) => {
+                  return time.getHours() >= 12
+                    ? "text-success"
+                    : time.getHours() >= 6 && "text-primary";
+                }}
+                excludeTimes={[
+                  setHours(setMinutes(new Date(), 0), 0),
+                  setHours(setMinutes(new Date(), 0), 1),
+                  setHours(setMinutes(new Date(), 0), 2),
+                  setHours(setMinutes(new Date(), 0), 3),
+                  setHours(setMinutes(new Date(), 0), 4),
+                  setHours(setMinutes(new Date(), 0), 5),
+                  setHours(setMinutes(new Date(), 30), 0),
+                  setHours(setMinutes(new Date(), 30), 1),
+                  setHours(setMinutes(new Date(), 30), 2),
+                  setHours(setMinutes(new Date(), 30), 3),
+                  setHours(setMinutes(new Date(), 30), 4),
+                  setHours(setMinutes(new Date(), 30), 5),
+                ]}
+                className={`form-control form-control-lg form-control-solid ${getInputClasses(
+                  "time"
+                )}`}
+                style={{ width: "100%" }}
+                {...formik.getFieldProps("time")}
+                selected={formik.values.time}
+                onChange={(val) => {
+                  formik.setFieldValue("time", val);
+                }}
+              />
+              {formik.touched.time && formik.errors.time ? (
+                <div className="invalid-feedback">{formik.errors.time}</div>
               ) : null}
             </div>
           </div>
           <div className="form-group row">
             <label className="col-xl-3 col-lg-3 col-form-label text-alert">
-              Room Details
+              Additional Instructions(if any):
             </label>
-            <div className="col-lg-3 col-xl-3 mb-4">
-              <input
-                type="text"
-                placeholder="Room Number"
+            <div className="col-lg-6 col-xl-6 ">
+              <TextareaAutosize
+                placeholder="Message"
                 className={`form-control form-control-lg form-control-solid ${getInputClasses(
-                  "room"
+                  "message"
                 )}`}
-                name="room"
+                name="message"
                 autoComplete="off"
-                {...formik.getFieldProps("room")}
+                {...formik.getFieldProps("message")}
               />
-              {formik.touched.room && formik.errors.room ? (
-                <div className="invalid-feedback">{formik.errors.room}</div>
-              ) : null}
-            </div>
-            <div className="col-lg-3 col-xl-3">
-              <input
-                type="text"
-                placeholder="Floor"
-                className={`form-control form-control-lg form-control-solid ${getInputClasses(
-                  "floor"
-                )}`}
-                name="floor"
-                autoComplete="off"
-                {...formik.getFieldProps("floor")}
-              />
-              {formik.touched.floor && formik.errors.floor ? (
-                <div className="invalid-feedback">{formik.errors.floor}</div>
-              ) : null}
-            </div>
-          </div>
-          <div className="form-group row">
-            <label className="col-xl-3 col-lg-3 col-form-label text-alert">
-              E-mail
-            </label>
-            <div className="col-lg-9 col-xl-6">
-              <input
-                type="text"
-                placeholder="E Mail"
-                className={`form-control form-control-lg form-control-solid ${getInputClasses(
-                  "email"
-                )}`}
-                name="email"
-                autoComplete="off"
-                {...formik.getFieldProps("email")}
-              />
-              {formik.touched.email && formik.errors.email ? (
-                <div className="invalid-feedback">{formik.errors.email}</div>
-              ) : null}
-            </div>
-          </div>
-          <div className="form-group row">
-            <label className="col-xl-3 col-lg-3 col-form-label text-alert">
-              Password
-            </label>
-            <div className="col-lg-9 col-xl-6">
-              <input
-                type="password"
-                placeholder="Password"
-                className={`form-control form-control-lg form-control-solid ${getInputClasses(
-                  "password"
-                )}`}
-                name="password"
-                autoComplete="off"
-                {...formik.getFieldProps("password")}
-              />
-              {formik.touched.password && formik.errors.password ? (
-                <div className="invalid-feedback">{formik.errors.password}</div>
+              {formik.touched.message && formik.errors.message ? (
+                <div className="invalid-feedback">{formik.errors.message}</div>
               ) : null}
             </div>
           </div>
@@ -288,7 +275,7 @@ function RegisterStudent(props) {
                   formik.isSubmitting || (formik.touched && !formik.isValid)
                 }
               >
-                Register
+                Create
                 {formik.isSubmitting}
               </button>
               <button
@@ -305,4 +292,4 @@ function RegisterStudent(props) {
   );
 }
 
-export default RegisterStudent
+export default StudentRequestForm;

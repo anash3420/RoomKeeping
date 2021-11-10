@@ -5,30 +5,33 @@ import { Link, Redirect } from "react-router-dom";
 import * as Yup from "yup";
 import { injectIntl } from "react-intl";
 import * as auth from "../_redux/authRedux";
-import { requestPassword } from "../_redux/authCrud";
-import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
+import { resetPass } from "../_redux/authCrud";
+import { useParams } from "react-router-dom";
 
+// UI Helpers
 const initialValues = {
-  email: "",
-  role: 'admin'
+  password: "",
+  cPassword: "",
 };
 
-function ForgotPassword(props) {
-  const { intl } = props;
+function ResetPassword(props) {
+  //   const { intl } = props;
+    const linkParams = useParams();
   const [isRequested, setIsRequested] = useState(false);
   const ResetPasswordSchema = Yup.object().shape({
-    role: Yup.string().required(),
-    email: Yup.string()
-      .email("Wrong email format")
-      .min(3, "Minimum 3 symbols")
-      .max(50, "Maximum 50 symbols")
-      .required(
-        intl.formatMessage({
-          id: "AUTH.VALIDATION.REQUIRED_FIELD",
-        })
-      ),
+    password: Yup.string()
+      .min(3)
+      .max(50)
+      .required("New Password is required"),
+    cPassword: Yup.string()
+      .required("New Password is required")
+      .when("password", {
+        is: (val) => (val && val.length > 0 ? true : false),
+        then: Yup.string().oneOf(
+          [Yup.ref("password")],
+          "Password and Confirm Password didn't match"
+        ),
+      }),
   });
 
   const getInputClasses = (fieldname) => {
@@ -47,23 +50,22 @@ function ForgotPassword(props) {
     initialValues,
     validationSchema: ResetPasswordSchema,
     onSubmit: (values, { setStatus, setSubmitting }) => {
-      requestPassword(values.email,values.role)
-        .then(() => setIsRequested(true))
+      resetPass(values.password, linkParams)
+        .then((res) => {
+        if(res.status === 203){
+          setIsRequested(false);
+          setSubmitting(false);
+          setStatus(res.data);
+        }else {
+            setIsRequested(true)};
+        })
         .catch(() => {
           setIsRequested(false);
           setSubmitting(false);
-          setStatus(
-            intl.formatMessage(
-              { id: "AUTH.VALIDATION.NOT_FOUND" }
-            )
-          );
+          setStatus("An error occured!");
         });
     },
   });
-
-  function handleChange(event) {
-    formik.setFieldValue('role',event.target.value);
-  }
 
   return (
     <>
@@ -71,9 +73,9 @@ function ForgotPassword(props) {
       {!isRequested && (
         <div className="login-form login-forgot" style={{ display: "block" }}>
           <div className="text-center mb-10 mb-lg-20">
-            <h3 className="font-size-h1">Forgotten Password ?</h3>
+            <h3 className="font-size-h1">Reset Password ?</h3>
             <div className="text-muted font-weight-bold">
-              Enter your email to reset your password
+              Enter your new password to reset your password
             </div>
           </div>
           <form
@@ -89,40 +91,34 @@ function ForgotPassword(props) {
             )}
             <div className="form-group fv-plugins-icon-container">
               <input
-                type="email"
-                className={`form-control form-control-solid h-auto py-5 px-6 ${getInputClasses(
-                  "email"
+                type="password"
+                placeholder="New Password"
+                className={`form-control form-control-lg form-control-solid mb-2 ${getInputClasses(
+                  "password"
                 )}`}
-                name="email"
-                placeholder="E-mail"
-                {...formik.getFieldProps("email")}
+                name="password"
+                {...formik.getFieldProps("password")}
               />
-              {formik.touched.email && formik.errors.email ? (
-                <div className="fv-plugins-message-container">
-                  <div className="fv-help-block">{formik.errors.email}</div>
+              {formik.touched.password && formik.errors.password ? (
+                <div className="invalid-feedback">{formik.errors.password}</div>
+              ) : null}
+            </div>
+            <div className="form-group fv-plugins-icon-container">
+              <input
+                type="password"
+                placeholder="Confirm Password"
+                className={`form-control form-control-lg form-control-solid ${getInputClasses(
+                  "cPassword"
+                )}`}
+                name="cPassword"
+                {...formik.getFieldProps("cPassword")}
+              />
+              {formik.touched.cPassword && formik.errors.cPassword ? (
+                <div className="invalid-feedback">
+                  {formik.errors.cPassword}
                 </div>
               ) : null}
             </div>
-            <RadioGroup aria-label="role" name="role" value={formik.values.role} onChange={handleChange} row>
-            <FormControlLabel
-              value="admin"
-              control={<Radio color="default" />}
-              label="Admin"
-              labelPlacement="end"
-            />
-            <FormControlLabel
-              value="student"
-              control={<Radio color="secondary" />}
-              label="Student"
-              labelPlacement="end"
-            />
-            <FormControlLabel
-              value="roomkeeper"
-              control={<Radio color="primary" />}
-              label="Roomkeeper"
-              labelPlacement="end"
-            />
-          </RadioGroup>
             <div className="form-group d-flex flex-wrap flex-center">
               <button
                 id="kt_login_forgot_submit"
@@ -149,4 +145,4 @@ function ForgotPassword(props) {
   );
 }
 
-export default injectIntl(connect(null, auth.actions)(ForgotPassword));
+export default injectIntl(connect(null, auth.actions)(ResetPassword));

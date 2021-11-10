@@ -6,7 +6,7 @@ import SVG from "react-inlinesvg";
 import { ModalProgressBar } from "../../../../../_metronic/_partials/controls";
 import { toAbsoluteUrl } from "../../../../../_metronic/_helpers";
 import Axios from "axios";
-function RegisterRoomkeeper() {
+function RegisterRoomkeeper(props) {
     // Fields
   const [loading, setloading] = useState(false);
   const [isError, setisError] = useState(false);
@@ -34,6 +34,7 @@ function RegisterRoomkeeper() {
             }else if(response.status === 200){
               setRegistered(true);
               formik.handleReset();
+              props.onUpdate();
             }
             setloading(false);
           })

@@ -10,7 +10,9 @@ const UserProfilepage = lazy(() =>
 const ManageUsers = lazy(() =>
   import("./modules/Admin/ManagingUsers/index")
 );
-
+const CleanRequests = lazy(() =>
+  import("./modules/Clean-Requests/CleanRequests")
+);
 export default function BasePage() {
   const role = useSelector(({auth}) => auth.user.role);
   // useEffect(() => {
@@ -25,9 +27,11 @@ export default function BasePage() {
           /* Redirect from root URL to /dashboard. */
           <Redirect exact from="/" to= {`/dashboard/${role}`} />
         }
+        {/* All Access */}
         <ContentRoute path={`/dashboard/${role}`} component={DashboardPage} />
         <ContentRoute path="/builder" component={BuilderPage} />
         <Route path="/user-profile" component={UserProfilepage} />
+        <Route path="/clean-requests" component={CleanRequests} />
 
         {/* To-Do Provide Access Based on roles*/}
 

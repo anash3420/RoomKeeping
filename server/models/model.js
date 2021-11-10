@@ -44,14 +44,25 @@ const adminSchema = new mongoose.Schema({
   })
   const cleanRequestSchema = new mongoose.Schema({
     studentId: String,
-    roomkeeperId: String,
+    roomkeeper: String,
+    room: String,
+    floor: Number,
+    hostel: String,
     time: String,
-    date: Date,
+    date: String,
     timeIn: String,
     timeOut: String,
-    requestStatus: Boolean
+    rating: Number,
+    requestStatus: {
+      type: String,
+      enum: ['Pending', 'Alloted', 'Rejected', 'Completed'],
+      default: 'Pending'
+    },
+    message: String,
+    rejectReason: Object
   })
   const complaintSchema = new mongoose.Schema({
+    hostel: String,
     feedbackId: String,
     studentId: String,
     details: {
@@ -60,6 +71,7 @@ const adminSchema = new mongoose.Schema({
     }
   })
   const suggestionSchema = new mongoose.Schema({
+    hostel: String,
     feedbackId: String,
     studentId: String,
     details: {
@@ -68,11 +80,29 @@ const adminSchema = new mongoose.Schema({
     }
   })
   const feedbackSchema = new mongoose.Schema({
+    hostel: String,
     studentId: String,
     requestId: String,
     rating:Number,
     message: String
   })
+
+  const tokenSchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: "user",
+    },
+    token: {
+        type: String,
+        required: true,
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+        expires: 3600,
+    },
+  });
 
 //custom method to generate authToken 
 adminSchema.methods.generateAuthToken = function() { 
@@ -99,7 +129,8 @@ adminSchema.methods.generateAuthToken = function() {
   const Complaint = new mongoose.model('Complaint', complaintSchema);
   const Suggestion = new mongoose.model('Suggestion', suggestionSchema);
   const Feedback = new mongoose.model('Feedback', feedbackSchema);
-  
+  const Token = new mongoose.model('Token',tokenSchema)
+
   //function to validate user 
   function validateUser(user) {
     const schema = Joi.object({
@@ -119,4 +150,5 @@ adminSchema.methods.generateAuthToken = function() {
   exports.Complaint = Complaint; 
   exports.Suggestion = Suggestion; 
   exports.Feedback = Feedback; 
+  exports.Token = Token;
   exports.validate = validateUser;

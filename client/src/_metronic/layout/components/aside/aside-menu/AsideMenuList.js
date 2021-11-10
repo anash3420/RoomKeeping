@@ -67,40 +67,84 @@ export function AsideMenuList({ layoutProps }) {
 
         {/* ------------------------------------------------Feedback------------------------------------------------------------ */}
         {/* begin::section */}
-        {role === "admin" && (
+        <li className="menu-section ">
+          <h4 className="menu-text">Feedback</h4>
+          <i className="menu-icon flaticon-more-v2"></i>
+        </li>
+        {/* end:: section */}
+        {role === "student" && (
           <>
-            <li className="menu-section ">
-              <h4 className="menu-text">Feedback</h4>
-              <i className="menu-icon flaticon-more-v2"></i>
+            {/*begin::Feedback*/}
+            <li
+              className={`menu-item ${getMenuItemActive("/student/ratings", false)}`}
+              aria-haspopup="true"
+            >
+              <NavLink className="menu-link" to="/student/ratings">
+                <span className="svg-icon menu-icon">
+                  <SVG
+                    src={toAbsoluteUrl(
+                      "/media/svg/icons/Communication/Chat4.svg"
+                    )}
+                  />
+                </span>
+                <span className="menu-text">Feedback</span>
+              </NavLink>
             </li>
-            {/* end:: section */}
-
+            {/*end::Feedback*/}
+          </>
+        )}
+        {(role === "admin" || role === "roomkeeper") && (
+          <>
+            {role === "roomkeeper" && (
+              <>
+                {/*begin::ratings*/}
+                <li
+                  className={`menu-item ${getMenuItemActive(
+                    "/roomkeeper/ratings",
+                    false
+                  )}`}
+                  aria-haspopup="true"
+                >
+                  <NavLink className="menu-link" to="/roomkeeper/ratings">
+                    <span className="svg-icon menu-icon">
+                      <SVG
+                        src={toAbsoluteUrl(
+                          "/media/svg/icons/General/Thunder.svg"
+                        )}
+                      />
+                    </span>
+                    <span className="menu-text">Ratings</span>
+                  </NavLink>
+                </li>
+                {/*end::ratings*/}
+              </>
+            )}
             {/*begin::Complaints*/}
             <li
               className={`menu-item ${getMenuItemActive(
-                "/admin/complaints",
+                "/complaints",
                 false
               )}`}
               aria-haspopup="true"
             >
-              <NavLink className="menu-link" to="/admin/complaints">
+              <NavLink className="menu-link" to="/complaints">
                 <span className="svg-icon menu-icon">
                   <SVG src={toAbsoluteUrl("/media/svg/icons/Code/Spy.svg")} />
                 </span>
                 <span className="menu-text">Complaints</span>
               </NavLink>
             </li>
-            {/*end::Roomkeeper*/}
+            {/*end::Complaints*/}
 
-            {/*begin::Student*/}
+            {/*begin::Suggestions*/}
             <li
               className={`menu-item ${getMenuItemActive(
-                "/admin/suggestions",
+                "/suggestions",
                 false
               )}`}
               aria-haspopup="true"
             >
-              <NavLink className="menu-link" to="/admin/suggestions">
+              <NavLink className="menu-link" to="/suggestions">
                 <span className="svg-icon menu-icon">
                   <SVG
                     src={toAbsoluteUrl("/media/svg/icons/Shopping/Box1.svg")}
@@ -109,10 +153,14 @@ export function AsideMenuList({ layoutProps }) {
                 <span className="menu-text">Suggestions</span>
               </NavLink>
             </li>
-            {/*end::Student*/}
+            {/*end::Suggestions*/}
+          </>
+        )}
 
-            {/* --------------------------------------------------Registration-------------------------------------------------------- */}
-            {/* begin::section */}
+        {/* --------------------------------------------------Registration-------------------------------------------------------- */}
+        {/* begin::section */}
+        {role === "admin" && (
+          <>
             <li className="menu-section ">
               <h4 className="menu-text">Manage Users</h4>
               <i className="menu-icon flaticon-more-v2"></i>
@@ -181,121 +229,21 @@ export function AsideMenuList({ layoutProps }) {
         </li>
         {/*end::Layout Builder*/}
 
-        {/* Error Pages */}
-        {/*begin::1 Level*/}
+        {/*begin::Sign Out*/}
         <li
-          className={`menu-item menu-item-submenu ${getMenuItemActive(
-            "/error",
-            true
-          )}`}
+          className={`menu-item ${getMenuItemActive("/logout", false)}`}
           aria-haspopup="true"
-          data-menu-toggle="hover"
         >
-          <NavLink className="menu-link menu-toggle" to="/error">
+          <NavLink className="menu-link" to="/logout">
             <span className="svg-icon menu-icon">
               <SVG
-                src={toAbsoluteUrl("/media/svg/icons/Code/Error-circle.svg")}
+                src={toAbsoluteUrl("/media/svg/icons/Navigation/Sign-out.svg")}
               />
             </span>
-            <span className="menu-text">Error Pages</span>
-            <i className="menu-arrow" />
+            <span className="menu-text">Sign Out</span>
           </NavLink>
-          <div className="menu-submenu ">
-            <i className="menu-arrow" />
-            <ul className="menu-subnav">
-              <li className="menu-item  menu-item-parent" aria-haspopup="true">
-                <span className="menu-link">
-                  <span className="menu-text">Error Pages</span>
-                </span>
-              </li>
-
-              {/*begin::2 Level*/}
-              <li
-                className={`menu-item ${getMenuItemActive("/error/error-v1")}`}
-                aria-haspopup="true"
-              >
-                <NavLink className="menu-link" to="/error/error-v1">
-                  <i className="menu-bullet menu-bullet-dot">
-                    <span />
-                  </i>
-                  <span className="menu-text">Error Page - 1</span>
-                </NavLink>
-              </li>
-              {/*end::2 Level*/}
-
-              {/*begin::2 Level*/}
-              <li
-                className={`menu-item ${getMenuItemActive("/error/error-v2")}`}
-                aria-haspopup="true"
-              >
-                <NavLink className="menu-link" to="/error/error-v2">
-                  <i className="menu-bullet menu-bullet-dot">
-                    <span />
-                  </i>
-                  <span className="menu-text">Error Page -2</span>
-                </NavLink>
-              </li>
-              {/*end::2 Level*/}
-
-              {/*begin::2 Level*/}
-              <li
-                className={`menu-item ${getMenuItemActive("/error/error-v3")}`}
-                aria-haspopup="true"
-              >
-                <NavLink className="menu-link" to="/error/error-v3">
-                  <i className="menu-bullet menu-bullet-dot">
-                    <span />
-                  </i>
-                  <span className="menu-text">Error Page - 3</span>
-                </NavLink>
-              </li>
-              {/*end::2 Level*/}
-
-              {/*begin::2 Level*/}
-              <li
-                className={`menu-item ${getMenuItemActive("/error/error-v4")}`}
-                aria-haspopup="true"
-              >
-                <NavLink className="menu-link" to="/error/error-v4">
-                  <i className="menu-bullet menu-bullet-dot">
-                    <span />
-                  </i>
-                  <span className="menu-text">Error Page - 4</span>
-                </NavLink>
-              </li>
-              {/*end::2 Level*/}
-
-              {/*begin::2 Level*/}
-              <li
-                className={`menu-item ${getMenuItemActive("/error/error-v5")}`}
-                aria-haspopup="true"
-              >
-                <NavLink className="menu-link" to="/error/error-v5">
-                  <i className="menu-bullet menu-bullet-dot">
-                    <span />
-                  </i>
-                  <span className="menu-text">Error Page - 5</span>
-                </NavLink>
-              </li>
-              {/*end::2 Level*/}
-
-              {/*begin::2 Level*/}
-              <li
-                className={`menu-item ${getMenuItemActive("/error/error-v6")}`}
-                aria-haspopup="true"
-              >
-                <NavLink className="menu-link" to="/error/error-v6">
-                  <i className="menu-bullet menu-bullet-dot">
-                    <span />
-                  </i>
-                  <span className="menu-text">Error Page - 6</span>
-                </NavLink>
-              </li>
-              {/*end::2 Level*/}
-            </ul>
-          </div>
         </li>
-        {/*end::1 Level*/}
+        {/*end::Sign Out*/}
       </ul>
 
       {/* end::Menu Nav */}
