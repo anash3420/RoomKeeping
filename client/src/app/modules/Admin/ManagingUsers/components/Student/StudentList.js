@@ -39,6 +39,7 @@ function StudentList(props) {
   useEffect(() => {
     Axios.get(`/api/users?hostel=${hostel}&role=student`)
       .then((response) => {
+        console.log(response.data);
         setData(response.data);
       })
       .catch((err) => {
@@ -69,8 +70,29 @@ function StudentList(props) {
             </span>
           );
         },
-        customBodyRender: (value) => {
-          return <span style={bodyStyles}>{value}</span>;
+        customBodyRender: (value, tableMeta) => {
+          return (
+            <>
+              <div className="symbol symbol-35 symbol-light mr-4 ml-4">
+                <span
+                  className="symbol-label"
+                  style={{
+                    backgroundImage: `url(${
+                      tableMeta.rowData[6]
+                        ? tableMeta.rowData[6]
+                        : toAbsoluteUrl("/media/users/blank.png")
+                    })`,
+                  }}
+                ></span>
+              </div>
+              <span
+                className="align-top"
+                style={{...bodyStyles, lineHeight: 3 }}
+              >
+                {value}
+              </span>
+            </>
+          )
         },
       },
     },
@@ -108,7 +130,11 @@ function StudentList(props) {
           );
         },
         customBodyRender: (value) => {
-          return <span style={bodyStyles}>{value}</span>;
+          return value ? (
+            <span style={bodyStyles}>{value}</span>
+          ) : (
+            <span className="text-muted font-weight-bolder">N/A</span>
+          );
         },
       },
     },
@@ -183,17 +209,32 @@ function StudentList(props) {
         },
       },
     },
+    {
+      name: "profileimg",
+      options: {
+        display: "excluded",
+        filter: false,
+        sort: false,
+        download: false,
+        print: false,
+        searchable: false,
+      }
+    },
   ];
   const options = {
     // serverSide: true,
     customToolbarSelect: (selectedRows, displayData, setSelectedRows) => {
+      const arr =
+      selectedRows.data.map((row) => {
+        return displayData[row.index].data[1].props.children;
+      });
       return (
         <div className="mb-2 mt-2 no-shadow">
           <button
             type="button"
             className="btn btn-danger font-weight-bolder font-size-sm"
             onClick={() => {
-              setDeleteData(selectedRows.data);
+              setDeleteData(arr);
               setAction("selected");
               setShow(true);
               setSelectedRows([]);
@@ -213,7 +254,7 @@ function StudentList(props) {
     // selectToolbarPlacement	: 'above',
     tableId: "studentList",
     filterType: "dropdown",
-    rowsPerPageOptions: [ 10, 25, 50, 100],
+    rowsPerPageOptions: [10, 25, 50, 100],
     textLabels: {
       body: {
         noMatch: "Sorry, no student records found",

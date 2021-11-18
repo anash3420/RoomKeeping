@@ -54,89 +54,44 @@ export function AsideMenuList({ layoutProps }) {
         >
           <NavLink className="menu-link" to="/user-profile">
             <span className="svg-icon menu-icon">
-              <SVG
-                src={toAbsoluteUrl(
-                  "/media/svg/icons/Communication/Add-user.svg"
-                )}
-              />
+              <SVG src={toAbsoluteUrl("/media/svg/icons/General/User.svg")} />
             </span>
             <span className="menu-text">User Profile</span>
           </NavLink>
         </li>
         {/*end::User Profile*/}
-
         {/* ------------------------------------------------Feedback------------------------------------------------------------ */}
         {/* begin::section */}
-        <li className="menu-section ">
-          <h4 className="menu-text">Feedback</h4>
-          <i className="menu-icon flaticon-more-v2"></i>
-        </li>
-        {/* end:: section */}
-        {role === "student" && (
+        {(role === "roomkeeper" || role === "admin") && (
           <>
-            {/*begin::Feedback*/}
+            <li className="menu-section ">
+              <h4 className="menu-text">Feedback</h4>
+              <i className="menu-icon flaticon-more-v2"></i>
+            </li>
             <li
-              className={`menu-item ${getMenuItemActive("/student/ratings", false)}`}
+              className={`menu-item ${getMenuItemActive("/ratings", false)}`}
               aria-haspopup="true"
             >
-              <NavLink className="menu-link" to="/student/ratings">
+              <NavLink className="menu-link" to="/ratings">
                 <span className="svg-icon menu-icon">
                   <SVG
-                    src={toAbsoluteUrl(
-                      "/media/svg/icons/Communication/Chat4.svg"
-                    )}
+                    src={toAbsoluteUrl("/media/svg/icons/General/Thunder.svg")}
                   />
                 </span>
-                <span className="menu-text">Feedback</span>
+                <span className="menu-text">Ratings</span>
               </NavLink>
             </li>
-            {/*end::Feedback*/}
-          </>
-        )}
-        {(role === "admin" || role === "roomkeeper") && (
-          <>
-            {role === "roomkeeper" && (
-              <>
-                {/*begin::ratings*/}
-                <li
-                  className={`menu-item ${getMenuItemActive(
-                    "/roomkeeper/ratings",
-                    false
-                  )}`}
-                  aria-haspopup="true"
-                >
-                  <NavLink className="menu-link" to="/roomkeeper/ratings">
-                    <span className="svg-icon menu-icon">
-                      <SVG
-                        src={toAbsoluteUrl(
-                          "/media/svg/icons/General/Thunder.svg"
-                        )}
-                      />
-                    </span>
-                    <span className="menu-text">Ratings</span>
-                  </NavLink>
-                </li>
-                {/*end::ratings*/}
-              </>
-            )}
-            {/*begin::Complaints*/}
             <li
-              className={`menu-item ${getMenuItemActive(
-                "/complaints",
-                false
-              )}`}
+              className={`menu-item ${getMenuItemActive("/complaints", false)}`}
               aria-haspopup="true"
             >
               <NavLink className="menu-link" to="/complaints">
                 <span className="svg-icon menu-icon">
-                  <SVG src={toAbsoluteUrl("/media/svg/icons/Code/Spy.svg")} />
+                  <SVG src={toAbsoluteUrl("/media/svg/icons/Design/Brush.svg")} />
                 </span>
                 <span className="menu-text">Complaints</span>
               </NavLink>
             </li>
-            {/*end::Complaints*/}
-
-            {/*begin::Suggestions*/}
             <li
               className={`menu-item ${getMenuItemActive(
                 "/suggestions",
@@ -153,10 +108,8 @@ export function AsideMenuList({ layoutProps }) {
                 <span className="menu-text">Suggestions</span>
               </NavLink>
             </li>
-            {/*end::Suggestions*/}
           </>
         )}
-
         {/* --------------------------------------------------Registration-------------------------------------------------------- */}
         {/* begin::section */}
         {role === "admin" && (
@@ -206,7 +159,6 @@ export function AsideMenuList({ layoutProps }) {
             {/*end::Student*/}
           </>
         )}
-
         {/* --------------------------------------------------Custom------------------------------------------------------------- */}
         {/* begin::section */}
         <li className="menu-section ">
@@ -214,7 +166,6 @@ export function AsideMenuList({ layoutProps }) {
           <i className="menu-icon flaticon-more-v2"></i>
         </li>
         {/* end:: section */}
-
         {/*begin::Layout Builder*/}
         <li
           className={`menu-item ${getMenuItemActive("/builder", false)}`}
@@ -228,7 +179,6 @@ export function AsideMenuList({ layoutProps }) {
           </NavLink>
         </li>
         {/*end::Layout Builder*/}
-
         {/*begin::Sign Out*/}
         <li
           className={`menu-item ${getMenuItemActive("/logout", false)}`}

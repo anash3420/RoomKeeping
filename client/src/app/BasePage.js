@@ -13,6 +13,16 @@ const ManageUsers = lazy(() =>
 const CleanRequests = lazy(() =>
   import("./modules/Clean-Requests/CleanRequests")
 );
+const Ratings = lazy(() =>
+  import("./modules/Feedback/Ratings")
+);
+const Suggestions = lazy(() =>
+  import("./modules/Feedback/Suggestions")
+);
+const Complaints = lazy(() =>
+  import("./modules/Feedback/Complaints")
+);
+
 export default function BasePage() {
   const role = useSelector(({auth}) => auth.user.role);
   // useEffect(() => {
@@ -32,6 +42,9 @@ export default function BasePage() {
         <ContentRoute path="/builder" component={BuilderPage} />
         <Route path="/user-profile" component={UserProfilepage} />
         <Route path="/clean-requests" component={CleanRequests} />
+        <Route path="/ratings" component={Ratings} />
+        <Route path="/suggestions" component={Suggestions} />
+        <Route path="/complaints" component={Complaints} />
 
         {/* To-Do Provide Access Based on roles*/}
 

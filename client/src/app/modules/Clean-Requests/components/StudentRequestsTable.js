@@ -4,12 +4,14 @@ import MUIDataTable from "mui-datatables";
 import Axios from "axios";
 import { DeleteDialog } from "./Dialogs/DeleteDialog";
 import SVG from "react-inlinesvg";
+import Rating from "react-rating";
 import { toAbsoluteUrl } from "../../../../_metronic/_helpers";
 import {
   Card,
   CardBody,
   CardHeader,
 } from "../../../../_metronic/_partials/controls";
+import { RatingsDialog } from "./Dialogs/RatingsDialog";
 
 const headStyles = {
   color: "#B5B5C3",
@@ -29,6 +31,8 @@ function StudentRequestsTable(props) {
   const [data, setData] = useState([]);
   const [show, setShow] = useState(false);
   const [deleteData, setDeleteData] = useState([]);
+  const [rateShow, setRateShow] = useState(false);
+  const [rateData, setRateData] = useState([]);
   const studentId = useSelector(
     (state) => state.auth.user.user._id,
     shallowEqual
@@ -156,8 +160,10 @@ function StudentRequestsTable(props) {
       label: "Ratings",
       sortThirdClickReset: true,
       options: {
+        display: 'excluded',
+        searchable: false,
         filter: true,
-        sort: true,
+        sort: false,
         customHeadLabelRender: () => {
           return (
             <span className="table-vertical-center" style={headStyles}>
@@ -165,35 +171,8 @@ function StudentRequestsTable(props) {
             </span>
           );
         },
-        customBodyRender: (value) => {
-          return (
-            <span style={bodyStyles}>
-              {value ? (
-                value
-              ) : (
-                <div className="svg-icon svg-icon-primary svg-icon-md d-block">
-                  <SVG
-                    src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")}
-                    title="Star"
-                  />
-                  <SVG
-                    src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")}
-                  />
-                  <SVG
-                    src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")}
-                  />
-                  <SVG
-                    src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")}
-                  />
-                  <SVG
-                    src={toAbsoluteUrl(
-                      "/media/svg/icons/General/Half-star.svg"
-                    )}
-                  />
-                </div>
-              )}
-            </span>
-          );
+        customBodyRender: (value, tableMeta) => {
+          return <>{value ? value : 0}</>;
         },
       },
     },
@@ -257,9 +236,34 @@ function StudentRequestsTable(props) {
           return (
             <div>
               <button
+                title="Rate Clean-Request"
+                disabled={
+                  (tableMeta.rowData[3] !== "Completed" ? true : false) ||
+                  (tableMeta.rowData[4] ? true : false)
+                }
+                className="btn btn-icon btn-light btn-hover-primary btn-sm mr-2"
+                onClick={() => {
+                  setRateShow(true);
+                  setRateData({
+                    id: value,
+                    date: tableMeta.rowData[1],
+                    time: tableMeta.rowData[2],
+                    timeIn: tableMeta.rowData[5],
+                    timeOut: tableMeta.rowData[6],
+                  });
+                }}
+              >
+                <span className="svg-icon svg-icon-md svg-icon-primary">
+                  <SVG
+                    src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")}
+                    title="Rate Clean-Request"
+                  />
+                </span>
+              </button>
+              <button
                 title="Delete Clean-Request"
                 disabled={tableMeta.rowData[3] !== "Pending" ? true : false}
-                className="btn btn-icon btn-light btn-hover-danger btn-sm "
+                className="btn btn-icon btn-light btn-hover-danger btn-sm ml-2"
                 onClick={() => {
                   setShow(true);
                   setDeleteData(value);
@@ -278,42 +282,90 @@ function StudentRequestsTable(props) {
       },
     },
     {
-      name: 'message',
+      name: "message",
       options: {
-        display: 'excluded',
+        display: "excluded",
         print: false,
         download: false,
         searchable: false,
         filter: false,
-      }
+      },
     },
     {
-      name: 'rejectReason',
+      name: "rejectReason",
       options: {
-        display: 'excluded',
+        display: "excluded",
         print: false,
         download: false,
         searchable: false,
         filter: false,
-      }
-    }
+      },
+    },
   ];
   const options = {
     expandableRows: true,
-    expandableRowsHeader: false,
     expandableRowsOnClick: true,
-    renderExpandableRow: (rowData, rowMeta) => {
-      // console.log(rowData, rowMeta);
+    renderExpandableRow: (rowData) => {
+      // console.log(rowData);
       return (
         <>
+          {rowData[3].props.children[3] !== false &&
+            (rowData[4].props.children > 0 ? (
+              <>
+                <td className="font-weight-bold">Ratings:</td>
+                <td colSpan="8">
+                  <Rating
+                    initialRating={rowData[4].props.children}
+                    readonly
+                    emptySymbol={
+                      <span className="svg-icon svg-icon-lg">
+                        <SVG
+                          src={toAbsoluteUrl(
+                            "/media/svg/icons/General/Star.svg"
+                          )}
+                        />
+                      </span>
+                    }
+                    fullSymbol={
+                      <span className="svg-icon svg-icon-lg svg-icon-primary">
+                        <SVG
+                          src={toAbsoluteUrl(
+                            "/media/svg/icons/General/Star.svg"
+                          )}
+                        />
+                      </span>
+                    }
+                  />
+                </td>
+              </>
+            ) : (
+              <>
+                <td className="font-weight-bold">Ratings:</td>
+                <td className="text-muted">*Not Yet Rated*</td>
+              </>
+            ))}
           <tr>
             <td className="font-weight-bold">Instructions:</td>
-            <td colSpan="8">{rowData[8] ? <div className="text-dark-50" >{rowData[8]} </div> : <div className="text-muted"><em>*-No Instructions Provided-*</em></div>}</td>
+            <td colSpan="8">
+              {rowData[8] ? (
+                <div className="text-dark-50">{rowData[8]} </div>
+              ) : (
+                <div className="text-muted">
+                  <em>*-No Instructions Provided-*</em>
+                </div>
+              )}
+            </td>
           </tr>
-          { rowData[3].props.children[2] !== false &&(<tr>
-            <td className="text-danger font-weight-bold">RejectReason:</td>
-            <td colSpan="8"><div className="text-dark-75 font-size-md" >{rowData[9].message}</div></td>
-          </tr>)}
+          {rowData[3].props.children[2] !== false && (
+            <tr>
+              <td className="text-danger font-weight-bold">RejectReason:</td>
+              <td colSpan="8">
+                <div className="text-dark-75 font-size-md">
+                  {rowData[9].message}
+                </div>
+              </td>
+            </tr>
+          )}
         </>
       );
     },
@@ -388,6 +440,16 @@ function StudentRequestsTable(props) {
           />
         </CardBody>
       </Card>
+      <RatingsDialog
+        studentId={studentId}
+        show={rateShow}
+        onHide={() => setRateShow(false)}
+        data={rateData}
+        onRefreshTable={(data) => {
+          setRateData([]);
+          setData(data);
+        }}
+      />
       <DeleteDialog
         data={deleteData}
         studentId={studentId}

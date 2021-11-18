@@ -161,6 +161,17 @@ app.get("/api/auth/getuser", auth, async (req, res) => {
     }
   } else if (role === "roomkeeper") {
     user = await RoomKeeper.findById(req.user._id).select("-password");
+    let avg;
+    if (user.ratings.length > 1) {
+      avg =
+        Math.round(
+          (user.ratings.reduce((a, b) => a + b) / user.ratings.length) * 10
+        ) / 10;
+    } else if (user.ratings.length === 1) {
+      avg = user.ratings[0];
+    } else {
+      avg = 0;
+    }
     if (user.profileimg.data !== undefined) {
       const img =
         "data:image/" +
@@ -173,7 +184,7 @@ app.get("/api/auth/getuser", auth, async (req, res) => {
         hostel: user.hostel,
         email: user.email,
         phone: user.phone,
-        ratings: user.ratings,
+        ratings: { avg, count: user.ratings.length },
         complaints: user.complaints,
         profileimg: img,
       };
@@ -354,66 +365,74 @@ app.post("/api/auth/reset-password/:role/:userid/:token", async (req, res) => {
 //----------------------------Updating User------------------------------//
 app.post("/api/updateUser", upload.single("profileimg"), async (req, res) => {
   const role = req.body.role;
-  let user;
-  if (req.body.changeimg) {
-    if (req.file) {
-      user = {
-        name: req.body.name,
-        phone: req.body.phone,
-        email: req.body.email,
-        profileimg: {
-          data: fs.readFileSync(
-            path.join(__dirname + "/images/" + req.file.filename)
-          ),
-          contentType: req.file.mimetype,
-        },
-      };
-    } else {
-      user = {
-        name: req.body.name,
-        phone: req.body.phone,
-        email: req.body.email,
-        profileimg: {
-          data: undefined,
-          contentType: undefined,
-        },
-      };
-    }
+  const changeimg = req.body.changeimg;
+  const isChange = changeimg === "true";
+  let user = {
+    name: req.body.name,
+    phone: req.body.phone,
+    email: req.body.email,
+  };
+  if (req.file) {
+    user = {
+      ...user,
+      profileimg: {
+        data: fs.readFileSync(
+          path.join(__dirname + "/images/" + req.file.filename)
+        ),
+        contentType: req.file.mimetype,
+      },
+    };
   }
 
   let updatedUser;
   if (role === "admin") {
-    updatedUser = await Admin.findOneAndUpdate({ _id: req.body.id }, user, {
-      new: true,
-    });
+    updatedUser = await Admin.findById(req.body.id);
   } else if (role === "roomkeeper") {
-    updatedUser = await RoomKeeper.findOneAndUpdate(
-      { _id: req.body.id },
-      user,
-      {
-        new: true,
-      }
-    );
+    updatedUser = await RoomKeeper.findById(req.body.id);
   } else if (role === "student") {
-    updatedUser = await Student.findOneAndUpdate({ _id: req.body.id }, user, {
-      new: true,
-    });
+    updatedUser = await Student.findById(req.body.id);
   } else {
     res.status(404).send("Select an appropriate Role");
   }
-  if (req.file) {
-    fs.unlink(path.join(__dirname + "/images/" + req.file.filename), (err) => {
-      if (err) {
-        console.error(err);
-      } else {
-        console.log("Deleted Successfully!");
-      }
-    });
+
+  updatedUser.name = user.name;
+  updatedUser.phone = user.phone;
+  updatedUser.email = user.email;
+  if (isChange) {
+    if (req.file) {
+      updatedUser.profileimg = user.profileimg;
+      fs.unlink(
+        path.join(__dirname + "/images/" + req.file.filename),
+        (err) => {
+          if (err) {
+            console.error(err);
+          } else {
+            console.log("Deleted Successfully!");
+          }
+        }
+      );
+    } else {
+      updatedUser.profileimg = {};
+    }
+  } else {
+    updatedUser.profileimg = updatedUser.profileimg;
+  }
+  await updatedUser.save();
+
+  let userDetails;
+  if (role === "admin") {
+    userDetails = await Admin.findById(req.body.id);
+  } else if (role === "roomkeeper") {
+    userDetails = await RoomKeeper.findById(req.body.id);
+  } else if (role === "student") {
+    userDetails = await Student.findById(req.body.id);
+  }
+  if (userDetails.profileimg.data !== undefined) {
     const img =
       "data:image/" +
-      updatedUser.profileimg.contentType +
+      userDetails.profileimg.contentType +
       ";base64," +
-      updatedUser.profileimg.data.toString("base64");
+      userDetails.profileimg.data.toString("base64");
     res.status(200).send({
       _id: updatedUser._id,
       name: updatedUser.name,
@@ -545,21 +564,22 @@ app.post("/api/deleteAllUsers", async (req, res) => {
   const hostel = req.query.hostel;
   const role = req.query.role;
   if (role === "roomkeeper") {
-    await RoomKeeper.deleteMany({ hostel }, (err, response) => {
-      if (err) {
-        console.log(err);
-        res.status(400).send("An Error Occured!");
-      }
-      res.status(200).send("Successfully Deleted All RoomKeepers!");
-    });
+    
+    await RoomKeeper.deleteMany({ hostel });
+    await CleanRequest.deleteMany({ hostel });
+    await Feedback.deleteMany({ hostel });
+    await Complaint.deleteMany({ hostel });
+    await Suggestion.deleteMany({ hostel });
+    res.status(200).send("Successfully Deleted All RoomKeepers!");
   } else if (role === "student") {
-    await Student.deleteMany({ hostel }, (err, response) => {
-      if (err) {
-        console.log(err);
-        res.status(400).send("An Error Occured!");
-      }
-      res.status(200).send("Successfully Deleted All Students!");
-    });
+    
+    await Student.deleteMany({ hostel });
+    await CleanRequest.deleteMany({ hostel });
+    await Feedback.deleteMany({ hostel });
+    await Complaint.deleteMany({ hostel });
+    await Suggestion.deleteMany({ hostel });
+    res.status(200).send("Successfully Deleted All Students!");
+
   } else {
     res.status(204).send("Please Select a Valid Role");
   }
@@ -571,59 +591,53 @@ app.post("/api/deleteUsers", async (req, res) => {
   const email = req.body.email;
   if (email) {
     if (role === "student") {
-      Student.deleteOne({ email }, (err, response) => {
-        if (err) console.log(err);
-      });
+      const student = await Student.findOne({ email });
+      await Student.deleteOne({ email });
+      await CleanRequest.deleteMany({ studentId: student._id });
+      await Feedback.deleteMany({ studentId: student._id });
+      await Complaint.deleteMany({ studentId: student._id });
+      await Suggestion.deleteMany({ studentId: student._id });
+
     } else if (role === "roomkeeper") {
-      RoomKeeper.deleteOne({ email }, (err, response) => {
-        if (err) console.log(err);
-      });
+      const roomKeeper = await RoomKeeper.findOne({ email });
+      await RoomKeeper.deleteOne({ email });
+      await CleanRequest.deleteMany({ roomkeeper: roomKeeper.name, hostel });
+      await Feedback.deleteMany({ roomKeeperId: roomKeeper._id });
+      await Complaint.deleteMany({ roomKeeperId: roomKeeper._id });
+      await Suggestion.deleteMany({ roomKeeperId: roomKeeper._id });
+
     } else {
       res.status(400).send("Please Select a Valid Role!");
     }
   } else {
     if (role === "student") {
-      const students = await Student.find({ hostel }).select("-password");
       const remStudents = req.body.data;
-      const deleteStudents = students.filter((user, index) => {
-        let flag = 0;
-        remStudents.forEach((stud) => {
-          if (stud.index === index) {
-            flag = 1;
-          }
-        });
-        if (flag === 1) {
-          return true;
-        } else {
-          return false;
-        }
-      });
-      deleteStudents.forEach((user) => {
-        Student.deleteOne({ email: user.email }, (err, response) => {
-          if (err) console.log(err);
-        });
-      });
+      const students = await Student.find({ hostel, email: {$in: remStudents} }).select("-password");
+
+      const studentId = students.map((student) => student._id);
+      await Student.deleteMany({ _id: {$in: studentId} });
+      await CleanRequest.deleteMany({ studentId: {$in: studentId} });
+      await Feedback.deleteMany({ studentId: {$in: studentId} });
+      await Complaint.deleteMany({ studentId: {$in: studentId} });
+      await Suggestion.deleteMany({ studentId: {$in: studentId} });
+
     } else if (role === "roomkeeper") {
-      const roomkeeper = await RoomKeeper.find({ hostel }).select("-password");
       const remRoomKeepers = req.body.data;
-      const deleteRoomKeepers = roomkeeper.filter((user, index) => {
-        let flag = 0;
-        remRoomKeepers.forEach((room) => {
-          if (room.index === index) {
-            flag = 1;
-          }
-        });
-        if (flag === 1) {
-          return true;
-        } else {
-          return false;
-        }
+      const roomKeepers = await RoomKeeper.find({ hostel, email: {$in: remRoomKeepers} }).select("-password");
+      // console.log(roomKeepers);
+      const roomKeeperId = roomKeepers.map((roomKeeper) => {
+        return roomKeeper._id;
       });
-      deleteRoomKeepers.forEach((user) => {
-        RoomKeeper.deleteOne({ email: user.email }, (err, response) => {
-          if (err) console.log(err);
-        });
+      const roomKeeperName = roomKeepers.map((roomKeeper) => {
+        return roomKeeper.name;
       });
+
+      await RoomKeeper.deleteMany({ hostel, email: { $in: remRoomKeepers } });
+      await CleanRequest.deleteMany({ hostel, roomkeeper: { $in: roomKeeperName } });
+      await Feedback.deleteMany({ roomKeeperId: { $in: roomKeeperId } });
+      await Complaint.deleteMany({ roomKeeperId: { $in: roomKeeperId } });
+      await Suggestion.deleteMany({ roomKeeperId: { $in: roomKeeperId } });
+
     } else {
       res.status(400).send("Select a Valid Role to Delete!");
     }
@@ -637,10 +651,61 @@ app.get("/api/users", async (req, res) => {
   const hostel = req.query.hostel;
   if (role === "student") {
     const students = await Student.find({ hostel }).select("-password");
-    res.status(200).send(students);
+    const studentDetails = students.map((student) => {
+      let img = "";
+      if (student.profileimg.data !== undefined) {
+        img =
+          "data:image/" +
+          student.profileimg.contentType +
+          ";base64," +
+          student.profileimg.data.toString("base64");
+      }
+      return {
+        name: student.name,
+        email: student.email,
+        room: student.room,
+        floor: student.floor,
+        phone: student.phone,
+        profileimg: img,
+        _id: student._id,
+      };
+    });
+    res.status(200).send(studentDetails);
   } else if (role === "roomkeeper") {
     const roomKeepers = await RoomKeeper.find({ hostel }).select("-password");
-    res.status(200).send(roomKeepers);
+    let avg = 0;
+    const roomKeepersList = roomKeepers.map((roomKeeper) => {
+      let img = "";
+      if (roomKeeper.profileimg.data !== undefined) {
+        img =
+          "data:image/" +
+          roomKeeper.profileimg.contentType +
+          ";base64," +
+          roomKeeper.profileimg.data.toString("base64");
+      }
+      if (roomKeeper.ratings.length > 1) {
+        avg =
+          Math.round(
+            (roomKeeper.ratings.reduce((a, b) => a + b) /
+              roomKeeper.ratings.length) *
+              10
+          ) / 10;
+      } else if (roomKeeper.ratings.length === 1) {
+        avg = roomKeeper.ratings[0];
+      } else {
+        avg = 0;
+      }
+      return {
+        name: roomKeeper.name,
+        email: roomKeeper.email,
+        hostel: roomKeeper.hostel,
+        phone: roomKeeper.phone,
+        ratings: avg,
+        count: roomKeeper.ratings.length,
+        profileimg: img,
+      };
+    });
+    res.status(200).send(roomKeepersList);
   }
   // console.log("Successflly fetched!");
 });
@@ -648,74 +713,194 @@ app.get("/api/users", async (req, res) => {
 //----------------------------------------------------User Dashboard---------------------------------------------------------------//
 
 //--------------------------Admin Dashboard---------------------------//
-app.get('/api/admin/dashboard', async(req,res)=>{
+app.get("/api/admin/dashboard", async (req, res) => {
   const hostel = req.query.hostel;
-  const requestsCompleted = await CleanRequest.find({hostel,requestStatus:"Completed"});
-  const reqLength = requestsCompleted.length;
-  const students = await Student.find({hostel}).select('__v');
+  const requests = await CleanRequest.find({
+    hostel,
+  });
+  const dashRequests = requests.filter((value) => {
+    return value.requestStatus === "Pending";
+  });
+  const reqLength = requests.filter((value) => {
+    return value.requestStatus === "Completed";
+  }).length;
+  const students = await Student.find({ hostel }).select("__v");
   const studentsLength = students.length;
-  const roomkeepers = await RoomKeeper.find({hostel}).select('__v');
+  const roomkeepers = await RoomKeeper.find({ hostel }).select("__v");
   const roomkeeperLength = roomkeepers.length;
 
-
-  res.status(200).send({requests:reqLength,students:studentsLength,roomkeepers:roomkeeperLength});
-})
-
-//--------------------------RoomKeeper Dashboard---------------------------//
-app.get('/api/roomkeeper/dashboard', async(req,res)=>{
-  const id = req.query.roomKeeperId;
-  const completedRequests = await CleanRequest.find({roomKeeperId:id,requestStatus:"Completed"});
-  const reqLength = completedRequests.length;
-  const scheduledRequests = await CleanRequest.find({roomKeeperId:id,requestStatus:"Alloted"});
-  const scheduledLength = scheduledRequests.length;
-  const complaints = await Complaint.find({roomKeeperId:id});
-  const complaintsLength = complaints.length;
-  res.status(200).send({requests:reqLength,scheduled:scheduledLength,complaints:complaintsLength});
+  res.status(200).send({
+    requests: reqLength,
+    students: studentsLength,
+    roomkeepers: roomkeeperLength,
+    data: dashRequests,
+  });
 });
 
-//--------------------------Student Dashboard---------------------------//                      
-app.get('/api/student/dashboard', async(req,res)=>{
+//--------------------------RoomKeeper Dashboard---------------------------//
+app.get("/api/roomkeeper/dashboard", async (req, res) => {
+  const id = req.query.roomKeeperId;
+  const name = req.query.name;
+  const hostel = req.query.hostel;
+  const completedRequests = await CleanRequest.find({
+    hostel,
+    roomkeeper: name,
+    requestStatus: "Completed",
+  });
+  const reqLength = completedRequests.length;
+  const complaints = await Complaint.find({ roomKeeperId: id });
+  const complaintsLength = complaints.length;
+  const scheduledRequests = await CleanRequest.find({
+    hostel,
+    roomkeeper: name,
+    requestStatus: "Alloted",
+  }).select("-__v -requestStatus");
+  const scheduledLength = scheduledRequests.length;
+  const dashRequests = scheduledRequests.map(async (request) => {
+    const studentData = await Student.findById(request.studentId).select(
+      "email phone"
+    );
+    return {
+      request,
+      studentData,
+    };
+  });
+  Promise.all(dashRequests).then((data) => {
+    res.status(200).send({
+      requests: reqLength,
+      scheduled: scheduledLength,
+      complaints: complaintsLength,
+      data: data,
+    });
+  });
+});
+
+//--------------------------Student Dashboard---------------------------//
+app.get("/api/student/dashboard", async (req, res) => {
   const id = req.query.id;
-  let requests = await CleanRequest.find({studentId:id}).select('-_id -__v -studentId');
+
+  let requests = await CleanRequest.find({ studentId: id }).select("-__v");
   const reqLength = requests.length;
-  const complaints = await Complaint.find({studentId:id}).select('__v');
-  const compLength = complaints.length;
-  const suggestions = await Suggestion.find({studentId:id}).select('__v');
-  const suggLength = suggestions.length;
-
-
-  res.status(200).send({requests:reqLength,complaints:compLength,suggestions:suggLength});
-})
+  const completedRequests =requests.filter((value) => {
+    return value.requestStatus === "Completed";
+  }).length;
+  const dashRequests = requests.filter((value) => {
+    return (
+      value.requestStatus === "Pending" || value.requestStatus === "Alloted"
+    );
+  });
+  const pendingRequests = dashRequests.length;
+  const finalArray = dashRequests.map(async (value) => {
+    if (value.requestStatus === "Alloted") {
+      const roomKeeperData = await RoomKeeper.findOne({
+        name: value.roomkeeper,
+        hostel: value.hostel,
+      });
+      let img = undefined;
+      if (roomKeeperData.profileimg.contentType !== undefined) {
+        img =
+          "data:image/" +
+          roomKeeperData.profileimg.contentType +
+          ";base64," +
+          roomKeeperData.profileimg.data.toString("base64");
+      }
+      const returnValue = {
+        _id: value._id,
+        studentId: value.studentId,
+        requestStatus: value.requestStatus,
+        roomkeeper: value.roomkeeper,
+        date: value.date,
+        time: value.time,
+        profileimg: img,
+        email: roomKeeperData.email,
+        phone: roomKeeperData.phone,
+      };
+      return returnValue;
+    } else {
+      return value;
+    }
+  });
+  Promise.all(finalArray).then(function (results) {
+    res.status(200).send({
+      requests: reqLength,
+      scheduled: pendingRequests,
+      completed: completedRequests,
+      data: results,
+    });
+  });
+});
 
 //-----------------------------------------------Clean Requests--------------------------------------------------------------------//
-
 
 //---------------------------Getting All Clean Request-------------------------//
 app.get("/api/clean-requests/student", async (req, res) => {
   const studentId = req.query.id;
   const requests = await CleanRequest.find({ studentId });
   requests.reverse();
-  res.status(200).send(requests);
+  const fetchedrequests = requests.map(async (value) => {
+    if (value.requestStatus === "Completed") {
+      const rating = await Feedback.findOne({
+        requestId: value._id,
+      }).select("rating");
+      if (rating !== null) {
+        value.rating = rating.rating;
+      }
+    }
+    return value;
+  });
+  Promise.all(fetchedrequests).then((data) => {
+    // console.log(data);
+    res.status(200).send(data);
+  });
 });
 
 app.get("/api/clean-requests/admin", async (req, res) => {
   const hostel = req.query.hostel;
   const requests = await CleanRequest.find({ hostel });
   requests.reverse();
-  res.status(200).send(requests);
+  const fetchedrequests = requests.map(async (value) => {
+    if (value.requestStatus === "Completed") {
+      const rating = await Feedback.findOne({
+        requestId: value._id,
+      }).select("rating");
+      if (rating !== null) {
+        value.rating = rating.rating;
+      }
+    }
+    return value;
+  });
+  Promise.all(fetchedrequests).then((data) => {
+    // console.log(data);
+    res.status(200).send(data);
+  });
 });
 
 app.get("/api/clean-requests/roomkeeper", async (req, res) => {
   const roomkeeper = req.query.name;
   const hostel = req.query.hostel;
-  const requests = await CleanRequest.find({ roomkeeper,hostel });
+  const requests = await CleanRequest.find({ roomkeeper, hostel });
   requests.reverse();
-  res.status(200).send(requests);
+  const fetchedrequests = requests.map(async (value) => {
+    if (value.requestStatus === "Completed") {
+      const rating = await Feedback.findOne({
+        requestId: value._id,
+      }).select("rating");
+      if (rating !== null) {
+        value.rating = rating.rating;
+      }
+    }
+    return value;
+  });
+  Promise.all(fetchedrequests).then((data) => {
+    // console.log(data);
+    res.status(200).send(data);
+  });
 });
 
 //---------------------------Creating Clean Request-------------------------//
 app.post("/api/clean-request/create", async (req, res) => {
   const newRequest = req.body;
+  let sum = 0;
   let flag = false;
   await CleanRequest.find(
     { studentId: newRequest.studentid, requestStatus: "Alloted" },
@@ -724,12 +909,14 @@ app.post("/api/clean-request/create", async (req, res) => {
         console.log(err);
       } else {
         result.forEach((request) => {
-          if(request.date === newRequest.date){
+          sum++;
+          if (request.date === newRequest.date) {
             flag = true;
           }
         });
       }
-    }).clone();
+    }
+  ).clone();
   await CleanRequest.find(
     { studentId: newRequest.studentid, requestStatus: "Pending" },
     (err, result) => {
@@ -737,34 +924,31 @@ app.post("/api/clean-request/create", async (req, res) => {
         console.log(err);
       } else {
         result.forEach((request) => {
-          if(request.date === newRequest.date){
+          sum++;
+          if (request.date === newRequest.date) {
             flag = true;
           }
         });
-        if(flag){
+        if (flag) {
           res.status(203).send("You have already requested for this date");
-        }
-        else {
-        result.filter((request) => {return (request.status === "Pending")});
-        if (result.length >= 3) {
-          res
-            .status(203)
-            .send("You Already have 3 Pending Requests.");
         } else {
-          const request = new CleanRequest({
-            studentId: newRequest.studentid,
-            time: newRequest.time,
-            date: newRequest.date,
-            message: newRequest.message,
-            requestStatus: "Pending",
-            hostel: newRequest.hostel,
-            room:newRequest.room,
-            floor:newRequest.floor,
-          });
-          request.save();
-          res.status(200).send("Clean Request Successfully Created.");
+          if (sum >= 3) {
+            res.status(203).send("You Already have 3 Scheduled Requests.");
+          } else {
+            const request = new CleanRequest({
+              studentId: newRequest.studentid,
+              time: newRequest.time,
+              date: newRequest.date,
+              message: newRequest.message,
+              requestStatus: "Pending",
+              hostel: newRequest.hostel,
+              room: newRequest.room,
+              floor: newRequest.floor,
+            });
+            request.save();
+            res.status(200).send("Clean Request Successfully Created.");
+          }
         }
-      }
       }
     }
   ).clone();
@@ -784,20 +968,24 @@ app.post("/api/rejectRequest", async (req, res) => {
   const role = req.body.role;
   const requestId = req.body.id;
   const name = req.body.name;
-  if(role === "admin"){
-  const request = await CleanRequest.findOne({ _id: requestId });
-  request.requestStatus = "Rejected";
-  request.rejectReason = {message: req.body.message,role:role};
-  request.save();
-  res.status(200).send("Successfully Rejected!");
-  }else if(role === "roomkeeper"){
+  if (role === "admin") {
+    const request = await CleanRequest.findOne({ _id: requestId });
+    request.requestStatus = "Rejected";
+    request.rejectReason = { message: req.body.message, role: role };
+    request.save();
+    res.status(200).send("Successfully Rejected!");
+  } else if (role === "roomkeeper") {
     const request = await CleanRequest.findOne({ _id: requestId });
     request.requestStatus = "Pending";
-    request.roomkeeper = null,
-    request.rejectReason = {message:req.body.message,name:name,role:role};
+    (request.roomkeeper = null),
+      (request.rejectReason = {
+        message: req.body.message,
+        name: name,
+        role: role,
+      });
     request.save();
     res.status(200).send("Successfully Completed!");
-  }else {
+  } else {
     res.status(400).send("You are not authorized!");
   }
 });
@@ -819,12 +1007,18 @@ app.post("/api/allotRequest", async (req, res) => {
 });
 
 //---------------------------Getting RoomKeeper Schedule-------------------------//
-app.get('/api/schedule', async (req,res)=>{
+app.get("/api/schedule", async (req, res) => {
   const roomkeeper = req.query.roomKeeper;
   const date = req.query.date;
-  const requests = await CleanRequest.find({roomkeeper,date,requestStatus:"Alloted"}).select('-__v -roomkeeper -requestStatus -date -hostel -studentId -message');
+  const requests = await CleanRequest.find({
+    roomkeeper,
+    date,
+    requestStatus: "Alloted",
+  }).select(
+    "-__v -roomkeeper -requestStatus -date -hostel -studentId -message"
+  );
   res.status(200).send(requests);
-})
+});
 
 //---------------------------Completing Clean Request-------------------------//
 app.post("/api/completeRequest", async (req, res) => {
@@ -837,6 +1031,364 @@ app.post("/api/completeRequest", async (req, res) => {
   request.timeOut = timeOut;
   request.save();
   res.status(200).send("Successfully Completed!");
+});
+
+//---------------------------------------------------------------FeedBack-----------------------------------------------------------//
+
+//---------------------------Ratings-------------------------//
+app.get("/api/ratings", async (req, res) => {
+  const role = req.query.role;
+  const hostel = req.query.hostel;
+  const id = req.query.id;
+
+  if (role === "admin") {
+    const ratings = await Feedback.find({ hostel }).select("-_id -__v");
+    const ratingData = ratings.map(async (rating) => {
+      const roomKeeper = await RoomKeeper.findById(rating.roomKeeperId).select(
+        "name profileimg"
+      );
+      const student = await Student.findById(rating.studentId).select(
+        "name profileimg"
+      );
+      let studentImg = undefined;
+      let img = undefined;
+      if (roomKeeper.profileimg.contentType !== undefined) {
+        img =
+          "data:image/" +
+          roomKeeper.profileimg.contentType +
+          ";base64," +
+          roomKeeper.profileimg.data.toString("base64");
+      }
+      if (student.profileimg.contentType !== undefined) {
+        studentImg =
+          "data:image/" +
+          student.profileimg.contentType +
+          ";base64," +
+          student.profileimg.data.toString("base64");
+      }
+      const data = await CleanRequest.findById(rating.requestId).select(
+        "-_id -__v"
+      );
+      return {
+        name: roomKeeper.name,
+        img,
+        studentImg,
+        student: student.name,
+        rating: rating.rating,
+        message: rating.message,
+        date: data.date,
+        room: data.room,
+      };
+    });
+    Promise.all(ratingData)
+      .then((data) => {
+        // console.log(data);
+        data.reverse();
+        res.status(200).send(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  } else if (role === "roomkeeper") {
+    const ratings = await Feedback.find({ roomKeeperId: id }).select(
+      "-_id -__v"
+    );
+    const ratingData = ratings.map(async (rating) => {
+      const student = await Student.findById(rating.studentId).select(
+        "name profileimg"
+      );
+      let img = undefined;
+      if (student.profileimg.contentType !== undefined) {
+        img =
+          "data:image/" +
+          student.profileimg.contentType +
+          ";base64," +
+          student.profileimg.data.toString("base64");
+      }
+      const data = await CleanRequest.findById(rating.requestId).select(
+        "-_id -__v"
+      );
+      return {
+        name: student.name,
+        img,
+        rating: rating.rating,
+        message: rating.message,
+        date: data.date,
+        room: data.room,
+      };
+    });
+    Promise.all(ratingData)
+      .then((data) => {
+        // console.log(data);
+        data.reverse();
+        res.status(200).send(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  } else {
+    res.status(400).send("You are not authorized!");
+  }
+});
+
+app.post("/api/ratings", async (req, res) => {
+  // console.log(req.body);
+  const rating = req.body.rating;
+  const message = req.body.message;
+  const _id = req.body.id;
+  const suggestions = req.body.suggestions;
+  const complains = req.body.complaints;
+
+  const rateRequest = await CleanRequest.findById(_id);
+
+  const roomKeeperId = await RoomKeeper.findOne({
+    hostel: rateRequest.hostel,
+    name: rateRequest.roomkeeper,
+  });
+
+  const feedback = new Feedback({
+    studentId: rateRequest.studentId,
+    roomKeeperId: roomKeeperId._id,
+    requestId: rateRequest._id,
+    hostel: rateRequest.hostel,
+    message: message,
+    rating: rating,
+  });
+  feedback.save();
+  const updateRatings = await RoomKeeper.findOne({
+    name: rateRequest.roomkeeper,
+    hostel: rateRequest.hostel,
+  }).select("ratings");
+  updateRatings.ratings.push(rating);
+  updateRatings.save();
+
+  if (suggestions) {
+    const feedbackId = await Feedback.findOne({
+      studentId: rateRequest.studentId,
+      roomKeeperId: roomKeeperId._id,
+      requestId: rateRequest._id,
+      hostel: rateRequest.hostel,
+    }).select("_id");
+
+    const suggestion = new Suggestion({
+      studentId: rateRequest.studentId,
+      roomKeeperId: roomKeeperId._id,
+      hostel: rateRequest.hostel,
+      feedbackId: feedbackId._id,
+      details: {
+        message: suggestions,
+        requestId: _id,
+      },
+    });
+    suggestion.save();
+  }
+  if (complains) {
+    const feedbackId = await Feedback.findOne({
+      studentId: rateRequest.studentId,
+      requestId: rateRequest._id,
+      hostel: rateRequest.hostel,
+    }).select("_id");
+
+    const complain = new Complaint({
+      studentId: rateRequest.studentId,
+      roomKeeperId: roomKeeperId._id,
+      hostel: rateRequest.hostel,
+      feedbackId: feedbackId._id,
+      details: {
+        message: complains,
+        requestId: _id,
+      },
+    });
+    complain.save();
+  }
+  res.status(200).send("Successfully Rated!");
+});
+
+//---------------------------Suggestions-------------------------//
+app.get("/api/suggestions", async (req, res) => {
+  const role = req.query.role;
+  const hostel = req.query.hostel;
+  const id = req.query.id;
+
+  if (role === "admin") {
+    const suggestions = await Suggestion.find({ hostel }).select("-_id -__v");
+    const suggestionData = suggestions.map(async (suggestion) => {
+      const roomKeeper = await RoomKeeper.findById(
+        suggestion.roomKeeperId
+      ).select("name profileimg");
+      const student = await Student.findById(suggestion.studentId).select(
+        "name profileimg"
+      );
+      let studentImg = undefined;
+      let roomKeeperImg = undefined;
+      if (roomKeeper.profileimg.contentType !== undefined) {
+        roomKeeperImg =
+          "data:image/" +
+          roomKeeper.profileimg.contentType +
+          ";base64," +
+          roomKeeper.profileimg.data.toString("base64");
+      }
+      if (student.profileimg.contentType !== undefined) {
+        studentImg =
+          "data:image/" +
+          student.profileimg.contentType +
+          ";base64," +
+          student.profileimg.data.toString("base64");
+      }
+      const data = await CleanRequest.findById(
+        suggestion.details.requestId
+      ).select("-_id -__v");
+      return {
+        name: roomKeeper.name,
+        roomKeeperImg,
+        studentImg,
+        student: student.name,
+        suggestion: suggestion.details.message,
+        date: data.date,
+        room: data.room,
+      };
+    });
+    Promise.all(suggestionData)
+      .then((data) => {
+        // console.log(data);
+        data.reverse();
+        res.status(200).send(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  } else if (role === "roomkeeper") {
+    const suggestions = await Suggestion.find({ roomKeeperId: id }).select(
+      "-_id -__v"
+    );
+    const suggestionData = suggestions.map(async (suggestion) => {
+      const student = await Student.findById(suggestion.studentId).select(
+        "name profileimg"
+      );
+      let studentImg = undefined;
+      if (student.profileimg.contentType !== undefined) {
+        studentImg =
+          "data:image/" +
+          student.profileimg.contentType +
+          ";base64," +
+          student.profileimg.data.toString("base64");
+      }
+      const data = await CleanRequest.findById(
+        suggestion.details.requestId
+      ).select("-_id -__v");
+      return {
+        name: student.name,
+        studentImg,
+        suggestion: suggestion.details.message,
+        date: data.date,
+        room: data.room,
+      };
+    });
+    Promise.all(suggestionData)
+      .then((data) => {
+        // console.log(data);
+        data.reverse();
+        res.status(200).send(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  } else {
+    res.status(400).send("You are not authorized!");
+  }
+});
+
+app.get("/api/complaints", async (req, res) => {
+  const role = req.query.role;
+  const hostel = req.query.hostel;
+  const id = req.query.id;
+  
+  if (role === "admin") {
+    const complaints = await Complaint.find({ hostel }).select("-_id -__v");
+    const complaintData = complaints.map(async (complaint) => {
+      const roomKeeper = await RoomKeeper.findById(
+        complaint.roomKeeperId
+      ).select("name profileimg");
+      const student = await Student.findById(complaint.studentId).select(
+        "name profileimg"
+      );
+      let studentImg = undefined;
+      let roomKeeperImg = undefined;
+      if (roomKeeper.profileimg.contentType !== undefined) {
+        roomKeeperImg =
+          "data:image/" +
+          roomKeeper.profileimg.contentType +
+          ";base64," +
+          roomKeeper.profileimg.data.toString("base64");
+      }
+      if (student.profileimg.contentType !== undefined) {
+        studentImg =
+          "data:image/" +
+          student.profileimg.contentType +
+          ";base64," +
+          student.profileimg.data.toString("base64");
+      }
+      const data = await CleanRequest.findById(
+        complaint.details.requestId
+      ).select("-_id -__v");
+      return {
+        name: roomKeeper.name,
+        roomKeeperImg,
+        studentImg,
+        student: student.name,
+        complaint: complaint.details.message,
+        date: data.date,
+        room: data.room,
+      };
+    });
+    Promise.all(complaintData)
+      .then((data) => {
+        // console.log(data);
+        data.reverse();
+        res.status(200).send(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  } else if (role === "roomkeeper") {
+    const complaints = await Complaint.find({ roomKeeperId: id }).select(
+      "-_id -__v"
+    );
+    const complaintData = complaints.map(async (complaint) => {
+      const student = await Student.findById(complaint.studentId).select(
+        "name profileimg"
+      );
+      let studentImg = undefined;
+      if (student.profileimg.contentType !== undefined) {
+        studentImg =
+          "data:image/" +
+          student.profileimg.contentType +
+          ";base64," +
+          student.profileimg.data.toString("base64");
+      }
+      const data = await CleanRequest.findById(
+        complaint.details.requestId
+      ).select("-_id -__v");
+      return {
+        name: student.name,
+        studentImg,
+        complaint: complaint.details.message,
+        date: data.date,
+        room: data.room,
+      };
+    });
+    Promise.all(complaintData)
+      .then((data) => {
+        // console.log(data);
+        data.reverse();
+        res.status(200).send(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  } else {
+    res.status(400).send("You are not authorized!");
+  }
 });
 
 // All other GET requests not handled before will return our React app

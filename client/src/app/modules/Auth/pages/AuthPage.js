@@ -43,8 +43,7 @@ export function AuthPage() {
                   Welcome to the<br />Room Keeping App!
                 </h3>
                 <p className="font-weight-lighter text-white opacity-80">
-                  The ultimate Bootstrap & React 16 admin theme framework for
-                  next generation web apps.
+                  The best Room Keeper - Student portal in the World, getting your rooms cleaned at your time now just a click away!
                 </p>
               </div>
               {/* end:: Aside content */}
@@ -130,10 +129,10 @@ export function AuthPage() {
             {/* begin::Mobile footer */}
             <div className="d-flex d-lg-none flex-column-auto flex-column flex-sm-row justify-content-between align-items-center mt-5 p-5">
               <div className="text-dark-50 font-weight-bold order-2 order-sm-1 my-2">
-                &copy; 2020 Metronic
+                &copy; 2021 RoomKeeping
               </div>
               <div className="d-flex order-1 order-sm-2 my-2">
-                <Link to="/terms" className="text-dark-75 text-hover-primary">
+                {/* <Link to="/terms" className="text-dark-75 text-hover-primary">
                   Privacy
                 </Link>
                 <Link
@@ -147,7 +146,7 @@ export function AuthPage() {
                   className="text-dark-75 text-hover-primary ml-4"
                 >
                   Contact
-                </Link>
+                </Link> */}
               </div>
             </div>
             {/* end::Mobile footer */}

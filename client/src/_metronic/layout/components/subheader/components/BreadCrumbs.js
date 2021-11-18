@@ -1,8 +1,12 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React from "react";
 import { Link } from "react-router-dom";
-
+import { useSelector, shallowEqual } from "react-redux";
 export function BreadCrumbs({ items }) {
+  const role = useSelector(
+    (state) => state.auth.user.role,
+    shallowEqual
+  );
   if (!items || !items.length) {
     return "";
   }
@@ -10,7 +14,7 @@ export function BreadCrumbs({ items }) {
   return (
     <ul className="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2">
       <li className="breadcrumb-item">
-        <Link to="/dashboard">
+        <Link to={`/dashboard/${role}`}>
           <i className="flaticon2-shelter text-muted icon-1x" />
         </Link>
       </li>

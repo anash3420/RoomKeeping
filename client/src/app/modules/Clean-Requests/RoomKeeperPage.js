@@ -4,6 +4,7 @@ import MUIDataTable from "mui-datatables";
 import Axios from "axios";
 import { RejectDialog } from "./components/Dialogs/RejectDialog";
 import SVG from "react-inlinesvg";
+import Rating from "react-rating";
 import { toAbsoluteUrl } from "../../../_metronic/_helpers";
 import {
   Card,
@@ -53,12 +54,11 @@ function RoomKeeperPage(props) {
         filter: false,
         sort: false,
         download: false,
-        print: false,
         sortThirdClickReset: true,
         customHeadLabelRender: () => {
           return (
             <span className="table-vertical-center" style={headStyles}>
-              Status Update
+              Rating
             </span>
           );
         },
@@ -66,12 +66,36 @@ function RoomKeeperPage(props) {
           return (
             <span style={bodyStyles}>
               {tableMeta.rowData[6] === "Completed" ? (
-                <div
-                  className="text-success text-center font-size-lg"
-                  title="Request has been completed"
-                >
-                  <em>*Completed*</em>
-                </div>
+                tableMeta.rowData[3] > 0 ? (
+                  <>
+                      <Rating
+                        initialRating={tableMeta.rowData[3]}
+                        readonly
+                        emptySymbol={
+                          <span className="svg-icon svg-icon-lg">
+                            <SVG
+                              src={toAbsoluteUrl(
+                                "/media/svg/icons/General/Star.svg"
+                              )}
+                            />
+                          </span>
+                        }
+                        fullSymbol={
+                          <span className="svg-icon svg-icon-lg svg-icon-primary">
+                            <SVG
+                              src={toAbsoluteUrl(
+                                "/media/svg/icons/General/Star.svg"
+                              )}
+                            />
+                          </span>
+                        }
+                      />
+                  </>
+                ) : (
+                  <>
+                    <span className="text-muted">*Not Yet Rated*</span>
+                  </>
+                )
               ) : (
                 <button
                   className="btn btn-success btn-elevate btn-shadow-hover btn-sm"
@@ -147,8 +171,11 @@ function RoomKeeperPage(props) {
       label: "Ratings",
       sortThirdClickReset: true,
       options: {
+        display: "excluded",
+        searchable: false,
         filter: true,
-        sort: true,
+        sort: false,
+        download: true,
         customHeadLabelRender: () => {
           return (
             <span className="table-vertical-center" style={headStyles}>
@@ -156,35 +183,8 @@ function RoomKeeperPage(props) {
             </span>
           );
         },
-        customBodyRender: (value) => {
-          return (
-            <span style={bodyStyles}>
-              {value ? (
-                value
-              ) : (
-                <div className="svg-icon svg-icon-primary svg-icon-md d-block">
-                  <SVG
-                    src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")}
-                    title="Star"
-                  />
-                  <SVG
-                    src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")}
-                  />
-                  <SVG
-                    src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")}
-                  />
-                  <SVG
-                    src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")}
-                  />
-                  <SVG
-                    src={toAbsoluteUrl(
-                      "/media/svg/icons/General/Half-star.svg"
-                    )}
-                  />
-                </div>
-              )}
-            </span>
-          );
+        customBodyRender: (value, tableMeta) => {
+          return <>{value ? value : 0}</>;
         },
       },
     },
@@ -364,7 +364,6 @@ function RoomKeeperPage(props) {
   ];
   const options = {
     expandableRows: true,
-    expandableRowsHeader: false,
     expandableRowsOnClick: true,
     renderExpandableRow: (rowData, rowMeta) => {
       return (

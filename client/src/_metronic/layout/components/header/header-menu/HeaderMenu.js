@@ -1,11 +1,16 @@
 /* eslint-disable no-script-url,jsx-a11y/anchor-is-valid */
 import React from "react";
 import { useLocation } from "react-router";
+import { useSelector, shallowEqual } from "react-redux";
 import { NavLink } from "react-router-dom";
 // import SVG from "react-inlinesvg";
 import {  checkIsActive } from "../../../../_helpers";
 
 export function HeaderMenu({ layoutProps }) {
+    const role = useSelector(
+        (state) => state.auth.user.role,
+        shallowEqual
+      );
     const location = useLocation();
     const getMenuItemActive = (url) => {
         return checkIsActive(location, url) ? "menu-item-active" : "";
@@ -20,7 +25,7 @@ export function HeaderMenu({ layoutProps }) {
         <ul className={`menu-nav ${layoutProps.ulClasses}`}>
             {/*begin::1 Level*/}
             <li className={`menu-item menu-item-rel ${getMenuItemActive('/dashboard')}`}>
-                <NavLink className="menu-link" to="/dashboard">
+                <NavLink className="menu-link" to={`/dashboard/${role}`}>
                     <span className="menu-text">Dashboard</span>
                     {layoutProps.rootArrowEnabled && (<i className="menu-arrow" />)}
                 </NavLink>

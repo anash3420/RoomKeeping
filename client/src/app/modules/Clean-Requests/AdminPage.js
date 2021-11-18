@@ -5,6 +5,7 @@ import Axios from "axios";
 import { RejectDialog } from "./components/Dialogs/RejectDialog";
 import AllotDialog from "./components/Dialogs/AllotDialog";
 import SVG from "react-inlinesvg";
+import Rating from "react-rating";
 import { toAbsoluteUrl } from "../../../_metronic/_helpers";
 import {
   Card,
@@ -185,30 +186,22 @@ function AdminPage(props) {
     },
     {
       name: "rating",
-      label: "Rating",
+      label: "Ratings",
+      sortThirdClickReset: true,
       options: {
+        display: 'excluded',
+        searchable: false,
         filter: true,
-        sort: true,
-        sortThirdClickReset: true,
+        sort: false,
         customHeadLabelRender: () => {
           return (
             <span className="table-vertical-center" style={headStyles}>
-              Ratings
+              Rating
             </span>
           );
         },
-        customBodyRender: (value) => {
-          return (
-            <div class="svg-icon svg-icon-primary svg-icon-md">
-              <SVG src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")} />
-              <SVG src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")} />
-              <SVG src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")} />
-              <SVG src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")} />
-              <SVG
-                src={toAbsoluteUrl("/media/svg/icons/General/Half-star.svg")}
-              />
-            </div>
-          );
+        customBodyRender: (value, tableMeta) => {
+          return <>{value ? value : 0}</>;
         },
       },
     },
@@ -395,6 +388,60 @@ function AdminPage(props) {
     },
   ];
   const options = {
+    expandableRows: true,
+    expandableRowsOnClick: true,
+    renderExpandableRow: (rowData) => {
+      // console.log(rowData);
+      return (
+        <>
+          {rowData[6].props.children[3] !== false &&
+            (rowData[3].props.children > 0 ? (
+              <>
+                <td className="font-weight-bold">Ratings:</td>
+                <td colSpan="8">
+                  <Rating
+                    initialRating={rowData[3].props.children}
+                    readonly
+                    emptySymbol={
+                      <span className="svg-icon svg-icon-lg">
+                        <SVG
+                          src={toAbsoluteUrl(
+                            "/media/svg/icons/General/Star.svg"
+                          )}
+                        />
+                      </span>
+                    }
+                    fullSymbol={
+                      <span className="svg-icon svg-icon-lg svg-icon-primary">
+                        <SVG
+                          src={toAbsoluteUrl(
+                            "/media/svg/icons/General/Star.svg"
+                          )}
+                        />
+                      </span>
+                    }
+                  />
+                </td>
+              </>
+            ) : (
+              <>
+                <td className="font-weight-bold">Ratings:</td>
+                <td className="text-muted">*Not Yet Rated*</td>
+              </>
+            ))}
+          {rowData[6].props.children[2] !== false && (
+            <tr>
+              <td className="text-danger font-weight-bold">RejectReason:</td>
+              <td colSpan="8">
+                <div className="text-dark-75 font-size-md">
+                  {rowData[10].message}
+                </div>
+              </td>
+            </tr>
+          )}
+        </>
+      );
+    },
     downloadOptions: { filename: "Clean-Requests.csv", seperator: "," },
     selectableRows: "none",
     filter: true,

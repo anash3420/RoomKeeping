@@ -14,7 +14,7 @@ function AdminCards(props) {
                   <span className="svg-icon svg-icon-primary svg-icon-4x">
                     <SVG
                       src={`${toAbsoluteUrl(
-                        "/media/svg/icons/General/User.svg"
+                        "/media/svg/icons/Communication/Group.svg"
                       )}`}
                       alt="user svg"
                     />

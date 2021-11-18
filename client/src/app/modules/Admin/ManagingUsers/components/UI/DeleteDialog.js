@@ -23,6 +23,7 @@ export function DeleteDialog({
           .then(() => {
             setLoading(false);
             setisDeleted(true);
+            getUsers();
           })
           .catch((err) => {
             console.log(err);
@@ -35,6 +36,7 @@ export function DeleteDialog({
           .then((res) => {
             setLoading(false);
             setisDeleted(true);
+            getUsers();
           })
           .catch((err) => {
             setLoading(false);
@@ -47,6 +49,7 @@ export function DeleteDialog({
           .then((res) => {
             setLoading(false);
             setisDeleted(true);
+            getUsers();
           })
           .catch((err) => {
             setLoading(false);
@@ -60,15 +63,9 @@ export function DeleteDialog({
     Axios.get(`/api/users?hostel=${hostel}&role=${role}`)
       .then((response) => {
         onRefreshTable(response.data);
-        onHide();
       })
       .catch((err) => {
         console.log(err);
-      })
-      .then(() => {
-        setTimeout(() => {
-          setisDeleted(false);
-        }, 500);
       });
   };
   return (
@@ -110,7 +107,12 @@ export function DeleteDialog({
           <>
             <button
               type="button"
-              onClick={getUsers}
+              onClick={() => {
+                onHide();
+                setTimeout(() => {
+                  setisDeleted(false);
+                }, 500);
+              }}
               className="btn btn-success btn-shadow-hover font-weight-bolder w-100 py-3 text-center"
             >
               Confirm

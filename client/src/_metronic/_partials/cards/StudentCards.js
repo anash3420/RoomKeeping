@@ -38,32 +38,32 @@ function StudentCards(props) {
                   <span className="svg-icon svg-icon-info svg-icon-4x">
                     <SVG
                       src={`${toAbsoluteUrl(
-                        "/media/svg/icons/General/Clipboard.svg"
+                        "/media/svg/icons/Home/Door-open.svg"
                       )}`}
-                      alt="Armchair SVG"
+                      alt="Door SVG"
                     />
                   </span>
                 </div>
                 {/* eslint-disable-next-line */}
                 <Link
-                  to="#"
+                  to="/clean-requests"
                   className="d-flex flex-column text-hover-info text-dark font-weight-bold font-size-h4 mb-3"
                 >
-                  <h1>{props.suggestions}</h1>SUGGESTIONS
+                  <h1>{props.scheduled}</h1>SCHEDULED REQUESTS
                 </Link>
               </div>
             </div>
           </div>
         </div>
         <div className="col-lg-4 col-md-6 col-sm-12">
-          <div className="card card-custom wave wave-animate-slow wave-danger mb-8 mb-lg-0">
+          <div className="card card-custom wave wave-animate-slow wave-success mb-8 mb-lg-0">
             <div className="card-body">
               <div className="d-flex align-items-center p-5">
                 <div className="mr-6">
-                  <span className="svg-icon svg-icon-danger svg-icon-4x">
+                  <span className="svg-icon svg-icon-success svg-icon-4x">
                     <SVG
                       src={`${toAbsoluteUrl(
-                        "/media/svg/icons/Communication/Write.svg"
+                        "/media/svg/icons/Communication/Clipboard-check.svg"
                       )}`}
                       alt="Clipboard-Check SVG"
                     />
@@ -71,10 +71,10 @@ function StudentCards(props) {
                 </div>
                 {/* eslint-disable-next-line */}
                 <Link
-                  to="#"
-                  className="d-flex flex-column text-hover-danger text-dark font-weight-bold font-size-h4 mb-3"
+                  to="/clean-requests"
+                  className="d-flex flex-column text-hover-success text-dark font-weight-bold font-size-h4 mb-3"
                 >
-                  <h1>{props.complaints}</h1>COMPLAINTS
+                  <h1>{props.completed}</h1>COMPLETED REQUESTS
                 </Link>
               </div>
             </div>

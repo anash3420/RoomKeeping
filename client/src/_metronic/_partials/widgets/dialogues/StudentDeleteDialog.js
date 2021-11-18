@@ -1,15 +1,21 @@
 import Axios from "axios";
 import React, { useState } from "react";
 import { Modal } from "react-bootstrap";
-import { ModalProgressBar } from "../../../../../_metronic/_partials/controls";
-import { toAbsoluteUrl } from "../../../../../_metronic/_helpers";
-export function DeleteDialog({ data, onRefreshTable, show, onHide,studentId }) {
+import { ModalProgressBar } from "../../../../_metronic/_partials/controls";
+import { toAbsoluteUrl } from "../../../../_metronic/_helpers";
+export default function StudentDeleteDialog({
+  data,
+  onRefreshTable,
+  show,
+  onHide,
+  studentId,
+}) {
   const [isLoading, setLoading] = useState(false);
   const [isDeleted, setisDeleted] = useState(false);
   const deleteRequest = () => {
     // server request for deleting request by id
     setLoading(true);
-    Axios.post(`/api/deleteRequest`, {id: data})
+    Axios.post(`/api/deleteRequest`, { id: data })
       .then(() => {
         setTimeout(() => {
           setLoading(false);
@@ -24,7 +30,7 @@ export function DeleteDialog({ data, onRefreshTable, show, onHide,studentId }) {
   };
 
   const getRequests = () => {
-    Axios.get(`/api/clean-requests/student?id=${studentId}`)
+    Axios.get(`/api/student/dashboard?id=${studentId}`)
       .then((response) => {
         onRefreshTable(response.data);
       })
@@ -39,17 +45,13 @@ export function DeleteDialog({ data, onRefreshTable, show, onHide,studentId }) {
       {/*end::Loading*/}
       {!isDeleted && (
         <Modal.Header closeButton>
-          <Modal.Title id="Delete-Modal">
-            Delete Clean-Request
-          </Modal.Title>
+          <Modal.Title id="Delete-Modal">Delete Clean-Request</Modal.Title>
         </Modal.Header>
       )}
       <Modal.Body>
         {!isDeleted ? (
           isLoading ? (
-            <span>
-              Request is deleting...
-            </span>
+            <span>Request is deleting...</span>
           ) : (
             <span>Are you sure?</span>
           )
@@ -83,23 +85,25 @@ export function DeleteDialog({ data, onRefreshTable, show, onHide,studentId }) {
             </button>
           </>
         ) : (
-          <div>
-            <button
-              type="button"
-              onClick={onHide}
-              className="btn btn-light btn-elevate"
-            >
-              Cancel
-            </button>
-            <> </>
-            <button
-              type="button"
-              onClick={deleteRequest}
-              className="btn btn-primary btn-elevate"
-            >
-              Delete
-            </button>
-          </div>
+          !isLoading && (
+            <div>
+              <button
+                type="button"
+                onClick={onHide}
+                className="btn btn-light btn-elevate"
+              >
+                Cancel
+              </button>
+              <> </>
+              <button
+                type="button"
+                onClick={deleteRequest}
+                className="btn btn-primary btn-elevate"
+              >
+                Delete
+              </button>
+            </div>
+          )
         )}
       </Modal.Footer>
     </Modal>

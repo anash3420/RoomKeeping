@@ -27,7 +27,6 @@ const adminSchema = new mongoose.Schema({
       contentType: String
     },
     ratings:[],
-    complaints:[],
   })
   const studentSchema = new mongoose.Schema({
     name: String,
@@ -63,6 +62,7 @@ const adminSchema = new mongoose.Schema({
   })
   const complaintSchema = new mongoose.Schema({
     hostel: String,
+    roomKeeperId: String,
     feedbackId: String,
     studentId: String,
     details: {
@@ -72,6 +72,7 @@ const adminSchema = new mongoose.Schema({
   })
   const suggestionSchema = new mongoose.Schema({
     hostel: String,
+    roomKeeperId: String,
     feedbackId: String,
     studentId: String,
     details: {
@@ -82,6 +83,7 @@ const adminSchema = new mongoose.Schema({
   const feedbackSchema = new mongoose.Schema({
     hostel: String,
     studentId: String,
+    roomKeeperId: String,
     requestId: String,
     rating:Number,
     message: String

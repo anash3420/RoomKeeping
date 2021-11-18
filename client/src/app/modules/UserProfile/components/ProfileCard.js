@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { shallowEqual, useSelector } from "react-redux";
 import SVG from "react-inlinesvg";
+import Rating from "react-rating";
 import { toAbsoluteUrl } from "../../../../_metronic/_helpers";
 
 export function ProfileCard() {
@@ -44,7 +45,13 @@ export function ProfileCard() {
                 <div className="symbol symbol-60 symbol-xxl-100 mr-5 align-self-start align-self-xxl-center">
                   <div
                     className="symbol-label"
-                    style={{ backgroundImage: `url(${user.profileimg ? user.profileimg : toAbsoluteUrl("/media/users/blank.png")})` }}
+                    style={{
+                      backgroundImage: `url(${
+                        user.profileimg
+                          ? user.profileimg
+                          : toAbsoluteUrl("/media/users/blank.png")
+                      })`,
+                    }}
                   ></div>
                   {/* style="background-i
                   mage:url('/metronic/theme/html/demo1/dist/assets/media/users/300_21.jpg')" */}
@@ -57,9 +64,46 @@ export function ProfileCard() {
                   >
                     {user.name}
                   </a>
-                  <div className="text-muted">
-                    {role[0].toUpperCase() + role.slice(1)}
-                  </div>
+                  {role === "roomkeeper" ? (
+                    user.ratings &&
+                    (user.ratings !== 0 ? (
+                      <div className="ml-4">
+                        <Rating
+                          initialRating={user.ratings.avg}
+                          readonly
+                          fractions={10}
+                          emptySymbol={
+                            <span className="svg-icon svg-icon-md">
+                              <SVG
+                                src={toAbsoluteUrl(
+                                  "/media/svg/icons/General/Star.svg"
+                                )}
+                              />
+                            </span>
+                          }
+                          fullSymbol={
+                            <span className="svg-icon svg-icon-md svg-icon-primary">
+                              <SVG
+                                src={toAbsoluteUrl(
+                                  "/media/svg/icons/General/Star.svg"
+                                )}
+                              />
+                            </span>
+                          }
+                        />
+                        <br />
+                        <span className="text-muted font-size-sm">
+                          - {user.ratings.count} Ratings
+                        </span>
+                      </div>
+                    ) : (
+                      "- N. A. -"
+                    ))
+                  ) : (
+                    <div className="text-muted">
+                      {role[0].toUpperCase() + role.slice(1)}
+                    </div>
+                  )}
                 </div>
               </div>
               {/* end::User */}
@@ -80,24 +124,44 @@ export function ProfileCard() {
                 {role === "student" && (
                   <>
                     <div className="d-flex align-items-center justify-content-between mb-2">
-                      <span className="font-weight-bold mr-2">Room Number:</span>
-                      <span className="text-muted">
-                        {user.room}
+                      <span className="font-weight-bold mr-2">
+                        Room Number:
                       </span>
+                      <span className="text-muted">{user.room}</span>
                     </div>
                     <div className="d-flex align-items-center justify-content-between mb-2">
                       <span className="font-weight-bold mr-2">Floor:</span>
-                      <span className="text-muted">
-                        {user.floor}
-                      </span>
+                      <span className="text-muted">{user.floor}</span>
                     </div>
                   </>
                 )}
-                 {/* To-Do */}
+                {/* To-Do */}
                 {role === "roomkeeper" && (
                   <div className="d-flex align-items-center justify-content-between mb-2">
-                  <span className="font-weight-bold mr-2">Ratings:</span>
-                  <span className="text-muted">{user.ratings ? user.ratings : "- N. A. -"}</span>
+                    <span className="font-weight-bold mr-2">Ratings:</span>
+                    { user.ratings && (user.ratings !== 0 ? (
+                      <div>
+                        <span className="text-muted ml-4 pl-4 mb-4 font-size-sm">
+                          <strong className="font-size-lg">
+                            {user.ratings.avg}
+                          </strong>
+                          <span className="svg-icon svg-icon-md svg-icon-primary align-top">
+                            <SVG
+                              src={toAbsoluteUrl(
+                                "/media/svg/icons/General/Star.svg"
+                              )}
+                            />
+                          </span>{" "}
+                          From{" "}
+                          <strong className="font-size-lg">
+                            {user.ratings.count}
+                          </strong>{" "}
+                          Ratings!
+                        </span>
+                      </div>
+                    ) : (
+                      "- N. A. -"
+                    ))}
                   </div>
                 )}
                 <div className="d-flex align-items-center justify-content-between mb-2">

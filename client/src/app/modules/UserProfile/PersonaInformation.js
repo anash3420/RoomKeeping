@@ -6,6 +6,7 @@ import { ModalProgressBar } from "../../../_metronic/_partials/controls";
 import { toAbsoluteUrl } from "../../../_metronic/_helpers";
 import * as auth from "../Auth";
 import Axios from "axios";
+import SVG from "react-inlinesvg";
 import { isNull } from "lodash";
 import { Button } from "react-bootstrap";
 
@@ -25,7 +26,7 @@ function PersonaInformation(props) {
   // Methods
   const saveUser = (values, setStatus, setSubmitting) => {
     setloading(true);
-    console.log(values);
+    // console.log(values);
     const formData = new FormData();
     !isNull(values.profileimg) && formData.append('profileimg',values.profileimg);
     formData.append('name',values.name);
@@ -43,6 +44,7 @@ function PersonaInformation(props) {
           setUpdated(true);
           dispatch(props.setUser({ user: response.data, role: role }));
           setloading(false);
+          formik.resetForm();
         })
         .catch(function(error) {
           console.log(error);
@@ -65,8 +67,7 @@ function PersonaInformation(props) {
     profileimg: Yup.mixed(),
     name: Yup.string().required("Name is required"),
     phone: Yup.string()
-      .length(10)
-      .required("Phone is required"),
+      .length(10).required("Phone number is required"),
     email: Yup.string()
       .email("Wrong email format")
       .required("Email is required"),
@@ -152,9 +153,35 @@ function PersonaInformation(props) {
       <div className="form">
         {/* begin::Body */}
         <div className="card-body">
-          { updated && (<div className="alert alert-custom alert-light-success alert-dismissible col-lg-12">
-            <div className="font-weight-bold alert-text">Details Updated Successfully!</div>
-          </div>)}
+        {updated && (
+            <div
+              className="alert alert-custom alert-light-success fade show mb-10"
+              role="alert"
+            >
+              <div className="alert-icon">
+                <span className="svg-icon svg-icon-3x svg-icon-success">
+                  <SVG
+                    src={toAbsoluteUrl("/media/svg/icons/Code/Done-circle.svg")}
+                  ></SVG>{" "}
+                </span>
+              </div>
+              <div className="alert-text font-weight-bold">
+                Details Updated Successfully!
+              </div>
+              <div className="alert-close" onClick={() => setUpdated(false)}>
+                <button
+                  type="button"
+                  className="close"
+                  data-dismiss="alert"
+                  aria-label="Close"
+                >
+                  <span aria-hidden="true">
+                    <i className="ki ki-close"></i>
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
           <div className="row">
             <label className="col-xl-3"></label>
             <div className="col-lg-9 col-xl-6">

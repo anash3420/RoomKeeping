@@ -4,6 +4,7 @@ import MUIDataTable from "mui-datatables";
 import Axios from "axios";
 import { DeleteDialog } from "../UI/DeleteDialog";
 import SVG from "react-inlinesvg";
+import Rating from "react-rating";
 import { toAbsoluteUrl } from "../../../../../../_metronic/_helpers";
 import {
   Card,
@@ -69,8 +70,29 @@ function RoomKeeperList(props) {
             </span>
           );
         },
-        customBodyRender: (value) => {
-          return <span style={bodyStyles}>{value}</span>;
+        customBodyRender: (value, tableMeta) => {
+          return (
+            <>
+            <div className="symbol symbol-35 symbol-light mr-4 ml-4">
+              <span
+                className="symbol-label"
+                style={{
+                  backgroundImage: `url(${
+                    tableMeta.rowData[6]
+                      ? tableMeta.rowData[6]
+                      : toAbsoluteUrl("/media/users/blank.png")
+                  })`,
+                }}
+              ></span>
+            </div>
+            <span
+              className="align-top"
+              style={{...bodyStyles, lineHeight: 3 }}
+            >
+              {value}
+            </span>
+          </>
+          )
         },
       },
     },
@@ -78,7 +100,7 @@ function RoomKeeperList(props) {
       name: "email",
       label: "E-mail",
       options: {
-        filter: true,
+        filter: false,
         sort: true,
         sortThirdClickReset: true,
         customHeadLabelRender: () => {
@@ -108,7 +130,11 @@ function RoomKeeperList(props) {
           );
         },
         customBodyRender: (value) => {
-          return <span style={bodyStyles}>{value}</span>;
+          return value ? (
+            <span style={bodyStyles}>{value}</span>
+          ) : (
+            <span className="text-muted font-weight-bolder">N/A</span>
+          );
         },
       },
     },
@@ -126,19 +152,32 @@ function RoomKeeperList(props) {
             </span>
           );
         },
-        customBodyRender: (value) => {
+        customBodyRender: (value,tableMeta) => {
           return (
-            <span style={bodyStyles}>
-              <div class="svg-icon svg-icon-primary svg-icon-2x">
-                <SVG src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")} />
-                <SVG src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")} />
-                <SVG src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")} />
-                <SVG src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")} />
-                <SVG
-                  src={toAbsoluteUrl("/media/svg/icons/General/Half-star.svg")}
-                />
-              </div>
-            </span>
+            value > 0 ? (
+            <>
+            <Rating
+              initialRating={value}
+              fractions={10}
+              readonly
+              emptySymbol={
+                <span className="svg-icon svg-icon-lg">
+                  <SVG
+                    src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")}
+                  />
+                </span>
+              }
+              fullSymbol={
+                <span className="svg-icon svg-icon-lg svg-icon-primary">
+                  <SVG
+                    src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")}
+                  />
+                </span>
+              }
+            />
+            <br />
+            <em className="text-muted font-size-sm font-weight-bold" >Total {tableMeta.rowData[5]} Ratings.</em>
+            </>) : (<em className="text-muted font-size-lg font-weight-dark-50">*Not Yet Rated*</em>)
           );
         },
       },
@@ -176,17 +215,45 @@ function RoomKeeperList(props) {
         },
       },
     },
+    {
+      name: "count",
+      label: "Total Ratings",
+      options: {
+        filter: false,
+        sort: false,
+        print: false,
+        searchable: false,
+        display: "excluded",
+        sortThirdClickReset: true,
+      },
+    },
+    {
+      name: "profileimg",
+      options: {
+        display: "excluded",
+        filter: false,
+        sort: false,
+        download: false,
+        print: false,
+        searchable: false,
+      }
+    },
   ];
   const options = {
     // serverSide: true,
     customToolbarSelect: (selectedRows, displayData, setSelectedRows) => {
+      const arr =
+      selectedRows.data.map((row) => {
+        return displayData[row.index].data[1].props.children;
+      });
+      // console.log(arr);
       return (
         <div className="mb-2 mt-2 no-shadow">
           <button
             type="button"
             className="btn btn-danger font-weight-bolder font-size-sm"
             onClick={() => {
-              setDeleteData(selectedRows.data);
+              setDeleteData(arr);
               setAction("selected");
               setShow(true);
               setSelectedRows([]);
