@@ -28,7 +28,7 @@ export function AuthPage() {
             {/*begin: Aside Container*/}
             <div className="d-flex flex-row-fluid flex-column justify-content-between">
               {/* start:: Aside header */}
-              <Link to="/" className="flex-column-auto mt-5 pb-lg-0 pb-10">
+              <Link to="/about" className="flex-column-auto mt-5 pb-lg-0 pb-10">
                 <img
                   alt="Logo"
                   className="max-h-70px"

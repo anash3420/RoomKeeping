@@ -33,7 +33,7 @@ export function Aside() {
               <>
                 {/* begin::Header Logo */}
                 <div className="header-logo">
-                  <Link to="/">
+                  <Link to="/about">
                     <img alt="logo" src={layoutProps.headerLogo}/>
                   </Link>
                 </div>

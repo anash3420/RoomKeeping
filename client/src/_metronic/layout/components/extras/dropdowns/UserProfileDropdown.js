@@ -63,9 +63,9 @@ export function UserProfileDropdown() {
                 <div className="text-dark m-0 flex-grow-1 mr-3 font-size-h5">
                   {user.name[0].toUpperCase()}
                 </div>
-                <span className="label label-light-success label-lg font-weight-bold label-inline">
+                {/* <span className="label label-light-success label-lg font-weight-bold label-inline">
                   3 messages
-                </span>
+                </span> */}
               </div>
               <div className="separator separator-solid"></div>
             </>
@@ -96,9 +96,9 @@ export function UserProfileDropdown() {
               <div className="text-white m-0 flex-grow-1 mr-3 font-size-h5">
                 {user.name}
               </div>
-              <span className="label label-success label-lg font-weight-bold label-inline">
+              {/* <span className="label label-success label-lg font-weight-bold label-inline">
                 3 messages
-              </span>
+              </span> */}
             </div>
           )}
         </>
@@ -167,9 +167,6 @@ export function UserProfileDropdown() {
             >
               Sign Out
             </Link>
-            <a href="#" className="btn btn-clean font-weight-bold">
-              Upgrade Plan
-            </a>
           </div>
         </div>
       </Dropdown.Menu>

@@ -28,7 +28,7 @@ export function HeaderMobile() {
             {...layoutProps.headerMobileAttributes}
         >
           {/*begin::Logo*/}
-          <Link to="/">
+          <Link to="/about">
             <img alt="logo" src={layoutProps.headerLogo} height="36px"/>
           </Link>
           {/*end::Logo*/}
@@ -42,16 +42,6 @@ export function HeaderMobile() {
                     <span/>
                   </button>
                   {/*end::Aside Mobile Toggle*/}
-                </>
-            )}
-
-            {layoutProps.headerMenuSelfDisplay && (
-                <>
-                  {/*begin::Header Menu Mobile Toggle*/}
-                  <button className="btn p-0 burger-icon ml-4" id="kt_header_mobile_toggle">
-                    <span/>
-                  </button>
-                  {/*end::Header Menu Mobile Toggle*/}
                 </>
             )}
 

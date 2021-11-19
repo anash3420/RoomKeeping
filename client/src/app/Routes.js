@@ -11,6 +11,7 @@ import { shallowEqual, useSelector } from "react-redux";
 import { Layout } from "../_metronic/layout";
 import BasePage from "./BasePage";
 import { Logout, AuthPage } from "./modules/Auth";
+import IndexPage from "./modules/Landing-Page/index";
 import ErrorsPage from "./modules/ErrorsExamples/ErrorsPage";
 
 export function Routes() {
@@ -23,16 +24,18 @@ export function Routes() {
 
   return (
     <Switch>
+      <Route exact path="/about" component={IndexPage} />
       {!isAuthorized ? (
         /*Render auth page when user at `/auth` and not authorized.*/
-        <Route>
-          <AuthPage />
-        </Route>
+        <>
+          <Route>
+            <AuthPage />
+          </Route>
+        </>
       ) : (
         /*Otherwise redirect to root page (`/`)*/
         <Redirect from="/auth" to="/" />
       )}
-
       <Route path="/error" component={ErrorsPage} />
       <Route path="/logout" component={Logout} />
 

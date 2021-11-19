@@ -98,7 +98,7 @@ export class HtmlClassService {
     if (brandSkin === "light") {
       return toAbsoluteUrl("/media/logos/logo-dark.png");
     } else {
-      return toAbsoluteUrl("/media/logos/logo-light.png");
+      return toAbsoluteUrl("/media/logos/Room_Keeping__2_-removebg-preview.png");
     }
   }
 

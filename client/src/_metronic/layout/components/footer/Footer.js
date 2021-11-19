@@ -23,7 +23,7 @@ export function Footer() {
         <div className="text-dark order-2 order-md-1">
           <span className="text-muted font-weight-bold mr-2">{today.toString()}</span> &copy;{" "}
           <a
-            href="/"
+            href="/about"
             target="_blank"
             rel="noopener noreferrer"
             className="text-dark-75 text-hover-primary"
