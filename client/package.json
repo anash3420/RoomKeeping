@@ -1,6 +1,6 @@
 {
     "name": "roomkeeping",
-    "version": "1.0",
+    "version": "1.0.0",
     "private": false,
     "homepage": "/metronic/react/demo1",
     "proxy": "http://localhost:5000",

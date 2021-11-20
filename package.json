@@ -2,12 +2,11 @@
   "name": "roomkeeping",
   "version": "1.0.0",
   "description": "An app to manage students and roomkeepers in the most time efficient way!",
-  "main": "/server/app.js",
+  "main": "app.js",
   "scripts": {
     "start": "node app.js",
     "react": "cd client && npm start",
     "build": "cd client && npm install && npm run build",
-    "azure": "NPM_CONFIG_PRODUCTION=false npm install --prefix client && npm run build --prefix client && npm run start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Anash Shelat",
