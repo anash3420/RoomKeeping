@@ -9,6 +9,9 @@
     "build": "cd client && npm install && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "engines": {
+    "node": "14.15.4"
+  },
   "author": "Anash Shelat",
   "license": "ISC",
   "dependencies": {
