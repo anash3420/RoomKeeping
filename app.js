@@ -32,7 +32,7 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "30mb", extended: true }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));
-app.use(express.static("./client/build"));
+app.use(express.static(process.cwd() +"/client/build"));
 
 // -------------------------------------------------Connecting to database----------------------------------------------------------//
 mongoose
@@ -1393,7 +1393,7 @@ app.get("/api/complaints", async (req, res) => {
 
 // All other GET requests not handled before will return our React app
 app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
+  res.sendFile(process.cwd()+"/client/build/index.html");
 });
 
 //----------------------------------------------------Express Server----------------------------------------------------------------//
