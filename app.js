@@ -13,7 +13,7 @@ const Joi = require("joi");
 const Crypto = require("crypto");
 const hbs = require("nodemailer-express-handlebars");
 //Importing from modules
-const auth = require("./middleware/auth");
+const auth = require("./server/middleware/auth");
 const {
   Admin,
   RoomKeeper,
@@ -24,8 +24,7 @@ const {
   Feedback,
   Token,
   validate,
-} = require("./models/model");
-const e = require("express");
+} = require("./server/models/model");
 
 const app = express();
 
@@ -33,7 +32,7 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "30mb", extended: true }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));
-app.use(express.static(path.resolve(__dirname, "../client/build")));
+app.use(express.static("./client/build"));
 
 // -------------------------------------------------Connecting to database----------------------------------------------------------//
 mongoose
@@ -98,32 +97,32 @@ const sendEmail = async (email, subject, type, payload) => {
         attachments: [
           {
             filename: "animated_header.gif",
-            path: __dirname + "/html/images/animated_header.gif",
+            path: __dirname + "/server/html/images/animated_header.gif",
             cid: "animated_header",
           },
           {
             filename: "bottom_img.png",
-            path: __dirname + "/html/images/bottom_img.png",
+            path: __dirname + "/server/html/images/bottom_img.png",
             cid: "bottom_img",
           },
           {
             filename: "body_background_2.png",
-            path: __dirname + "/html/images/body_background_2.png",
+            path: __dirname + "/server/html/images/body_background_2.png",
             cid: "body_background_2",
           },
           {
             filename: "logo-dark.png",
-            path: __dirname + "/html/images/logo-dark.png",
+            path: __dirname + "/server/html/images/logo-dark.png",
             cid: "logo",
           },
           {
             filename: "instagram2x.png",
-            path: __dirname + "/html/images/instagram2x.png",
+            path: __dirname + "/server/html/images/instagram2x.png",
             cid: "insta",
           },
           {
             filename: "twitter2x.png",
-            path: __dirname + "/html/images/twitter2x.png",
+            path: __dirname + "/server/html/images/twitter2x.png",
             cid: "twitter",
           },
         ],
@@ -1394,7 +1393,7 @@ app.get("/api/complaints", async (req, res) => {
 
 // All other GET requests not handled before will return our React app
 app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "../client/build", "index.html"));
+  res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
 });
 
 //----------------------------------------------------Express Server----------------------------------------------------------------//
