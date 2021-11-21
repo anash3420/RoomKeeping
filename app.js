@@ -1392,7 +1392,7 @@ app.get("/api/complaints", async (req, res) => {
 });
 
 // All other GET requests not handled before will return our React app
-app.get("*", (req, res) => {
+app.get("/", (req, res) => {
   res.sendFile(process.cwd()+"/client/build/index.html");
 });
 
