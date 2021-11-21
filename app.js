@@ -646,7 +646,6 @@ app.post("/api/deleteUsers", async (req, res) => {
 
 //--------------------------Users List---------------------------//
 app.get("/api/users", async (req, res) => {
-  console.log( req.query);
   const role = req.query.role;
   const hostel = req.query.hostel;
   if (role === "student") {

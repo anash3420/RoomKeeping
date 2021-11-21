@@ -250,7 +250,7 @@ function StudentList(props) {
     rowsPerPage: 10,
     // searchAlwaysOpen: true,
     rowHover: false,
-    searchOpen: true,
+    searchOpen: false,
     // selectToolbarPlacement	: 'above',
     tableId: "studentList",
     filterType: "dropdown",

@@ -200,7 +200,7 @@ function Suggestions() {
     filter: true,
     selectableRows: "none",
     rowHover: false,
-    searchOpen: true,
+    searchOpen: false,
     rowsPerPageOptions: [10, 25, 50, 100],
     textLabels: {
       body: {

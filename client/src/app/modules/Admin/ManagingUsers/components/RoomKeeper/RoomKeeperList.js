@@ -267,7 +267,7 @@ function RoomKeeperList(props) {
     filter: true,
     // searchAlwaysOpen: true,
     rowHover: false,
-    searchOpen: true,
+    searchOpen: false,
     // selectToolbarPlacement	: 'above',
     tableId: "roomkeeperList",
     filterType: "dropdown",

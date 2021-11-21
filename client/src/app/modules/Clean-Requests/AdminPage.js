@@ -449,7 +449,7 @@ function AdminPage(props) {
     rowsPerPage: 10,
     // searchAlwaysOpen: true,
     rowHover: false,
-    searchOpen: true,
+    searchOpen: false,
     tableId: "AdminRequests",
     filterType: "dropdown",
     rowsPerPageOptions: [10, 25, 50, 100],

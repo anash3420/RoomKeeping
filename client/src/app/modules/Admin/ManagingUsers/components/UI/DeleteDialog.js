@@ -87,7 +87,7 @@ export function DeleteDialog({
               {role.charAt(0).toUpperCase() + role.slice(1)} are deleting...
             </span>
           ) : (
-            <span>Are you sure?</span>
+            <span>All data related to the user including clean-requests, ratings, suggestions and complaints will be deleted. This process can't be reversed.<br />Are You Sure?</span>
           )
         ) : (
           <>

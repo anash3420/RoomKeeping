@@ -377,7 +377,7 @@ function StudentRequestsTable(props) {
     rowsPerPage: 10,
     // searchAlwaysOpen: true,
     rowHover: false,
-    searchOpen: true,
+    searchOpen: false,
     tableId: "StudentRequestsTable",
     filterType: "dropdown",
     rowsPerPageOptions: [10, 25, 50, 100],
