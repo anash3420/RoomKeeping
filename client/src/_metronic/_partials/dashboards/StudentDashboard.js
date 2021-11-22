@@ -5,6 +5,7 @@ import Axios from "axios";
 import { useSelector, shallowEqual } from "react-redux";
 export default function StudentDashboard() {
   const [data, setData] = React.useState({requests:0,scheduled:0,completed:0,data:[]});
+  const [loading, setLoading] = React.useState(true);
   const user = useSelector((state) => state.auth.user, shallowEqual);
   const studentid = user.user._id;
   const hostel = user.user.hostel;
@@ -16,6 +17,8 @@ export default function StudentDashboard() {
       })
       .catch((err) => {
         console.log(err);
+      }).then(() => {
+        setLoading(false);
       });
   }, [studentid]);
 
@@ -35,6 +38,7 @@ export default function StudentDashboard() {
             hostel={hostel}
             data={data.data}
             studentId={studentid}
+            loading={loading}
             onRefresh={(refreshData) => {
               setData(refreshData);
             }}

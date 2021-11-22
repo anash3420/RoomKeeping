@@ -6,6 +6,7 @@ import { RejectDialog } from "./components/Dialogs/RejectDialog";
 import AllotDialog from "./components/Dialogs/AllotDialog";
 import SVG from "react-inlinesvg";
 import Rating from "react-rating";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import { toAbsoluteUrl } from "../../../_metronic/_helpers";
 import {
   Card,
@@ -33,6 +34,7 @@ function AdminPage(props) {
   const [rejectShow, setRejectShow] = useState(false);
   const [allotData, setAllotData] = useState([]);
   const [allotShow, setAllotShow] = useState(false);
+  const [loading, setLoading] = useState(false);
   const hostel = useSelector(
     (state) => state.auth.user.user.hostel,
     shallowEqual
@@ -44,6 +46,9 @@ function AdminPage(props) {
       })
       .catch((err) => {
         console.log(err);
+      })
+      .then(() => {
+        setLoading(false);
       });
   }, [props, hostel]);
 
@@ -189,7 +194,7 @@ function AdminPage(props) {
       label: "Ratings",
       sortThirdClickReset: true,
       options: {
-        display: 'excluded',
+        display: "excluded",
         searchable: false,
         filter: true,
         sort: false,
@@ -503,13 +508,19 @@ function AdminPage(props) {
           </div>
         </CardHeader>
         <CardBody style={{ zIndex: "0" }}>
-          <MUIDataTable
-            title=""
-            data={data}
-            columns={columns}
-            options={options}
-            className="card card-custom shadow-none border-bottom-0 table table-head-custom table-vertical-center overflow-hidden mb-0"
-          />
+          {!loading ? (
+            <MUIDataTable
+              title=""
+              data={data}
+              columns={columns}
+              options={options}
+              className="card card-custom shadow-none border-bottom-0 table table-head-custom table-vertical-center overflow-hidden mb-0"
+            />
+          ) : (
+            <div className="text-center mt-4 pt-4 pb-4 mb-4 text-info">
+              <CircularProgress color="inherit" size={50} />
+            </div>
+          )}
         </CardBody>
       </Card>
       <RejectDialog

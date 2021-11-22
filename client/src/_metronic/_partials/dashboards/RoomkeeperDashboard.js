@@ -5,6 +5,7 @@ import Axios from "axios";
 import { useSelector,shallowEqual } from "react-redux";
 export default function RoomkeeperDashboard() {
   const [data, setData] = React.useState({requests: 0,complaints: 0,scheduled: 0, data: []});
+  const [loading, setLoading] = React.useState(true);
   const user = useSelector((state) => state.auth.user, shallowEqual);
   const roomKeeperId = user.user._id;
   const hostel = user.user.hostel;
@@ -17,6 +18,8 @@ export default function RoomkeeperDashboard() {
       })
       .catch((err) => {
         console.log(err);
+      }).then(() => {
+        setLoading(false);
       });
   }, [roomKeeperId,hostel,name]);
   return (
@@ -26,7 +29,7 @@ export default function RoomkeeperDashboard() {
       <br />
       <div className="row">
         <div className="col-lg-12 col-xxl-12">
-          <RoomKeeperDashboardTable hostel={hostel} scheduledRequests = {data.data} onRefresh={(data) => setData(data)} roomKeeperId name/>
+          <RoomKeeperDashboardTable hostel={hostel} scheduledRequests = {data.data} onRefresh={(data) => setData(data)} roomKeeperId name loading={loading}/>
         </div>
       </div>
     </>

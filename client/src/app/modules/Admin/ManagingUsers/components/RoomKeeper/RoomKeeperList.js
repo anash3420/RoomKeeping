@@ -5,6 +5,7 @@ import Axios from "axios";
 import { DeleteDialog } from "../UI/DeleteDialog";
 import SVG from "react-inlinesvg";
 import Rating from "react-rating";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import { toAbsoluteUrl } from "../../../../../../_metronic/_helpers";
 import {
   Card,
@@ -33,6 +34,7 @@ function RoomKeeperList(props) {
   const [show, setShow] = useState(false);
   const [action, setAction] = useState("");
   const [deleteData, setDeleteData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const hostel = useSelector(
     (state) => state.auth.user.user.hostel,
     shallowEqual
@@ -44,6 +46,9 @@ function RoomKeeperList(props) {
       })
       .catch((err) => {
         console.log(err);
+      })
+      .then(() => {
+        setLoading(false);
       });
   }, [hostel, props]);
 
@@ -73,26 +78,26 @@ function RoomKeeperList(props) {
         customBodyRender: (value, tableMeta) => {
           return (
             <>
-            <div className="symbol symbol-35 symbol-light mr-4 ml-4">
+              <div className="symbol symbol-35 symbol-light mr-4 ml-4">
+                <span
+                  className="symbol-label"
+                  style={{
+                    backgroundImage: `url(${
+                      tableMeta.rowData[6]
+                        ? tableMeta.rowData[6]
+                        : toAbsoluteUrl("/media/users/blank.png")
+                    })`,
+                  }}
+                ></span>
+              </div>
               <span
-                className="symbol-label"
-                style={{
-                  backgroundImage: `url(${
-                    tableMeta.rowData[6]
-                      ? tableMeta.rowData[6]
-                      : toAbsoluteUrl("/media/users/blank.png")
-                  })`,
-                }}
-              ></span>
-            </div>
-            <span
-              className="align-top"
-              style={{...bodyStyles, lineHeight: 3 }}
-            >
-              {value}
-            </span>
-          </>
-          )
+                className="align-top"
+                style={{ ...bodyStyles, lineHeight: 3 }}
+              >
+                {value}
+              </span>
+            </>
+          );
         },
       },
     },
@@ -152,32 +157,37 @@ function RoomKeeperList(props) {
             </span>
           );
         },
-        customBodyRender: (value,tableMeta) => {
-          return (
-            value > 0 ? (
+        customBodyRender: (value, tableMeta) => {
+          return value > 0 ? (
             <>
-            <Rating
-              initialRating={value}
-              fractions={10}
-              readonly
-              emptySymbol={
-                <span className="svg-icon svg-icon-lg">
-                  <SVG
-                    src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")}
-                  />
-                </span>
-              }
-              fullSymbol={
-                <span className="svg-icon svg-icon-lg svg-icon-primary">
-                  <SVG
-                    src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")}
-                  />
-                </span>
-              }
-            />
-            <br />
-            <em className="text-muted font-size-sm font-weight-bold" >Total {tableMeta.rowData[5]} Ratings.</em>
-            </>) : (<em className="text-muted font-size-lg font-weight-dark-50">*Not Yet Rated*</em>)
+              <Rating
+                initialRating={value}
+                fractions={10}
+                readonly
+                emptySymbol={
+                  <span className="svg-icon svg-icon-lg">
+                    <SVG
+                      src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")}
+                    />
+                  </span>
+                }
+                fullSymbol={
+                  <span className="svg-icon svg-icon-lg svg-icon-primary">
+                    <SVG
+                      src={toAbsoluteUrl("/media/svg/icons/General/Star.svg")}
+                    />
+                  </span>
+                }
+              />
+              <br />
+              <em className="text-muted font-size-sm font-weight-bold">
+                Total {tableMeta.rowData[5]} Ratings.
+              </em>
+            </>
+          ) : (
+            <em className="text-muted font-size-lg font-weight-dark-50">
+              *Not Yet Rated*
+            </em>
           );
         },
       },
@@ -236,14 +246,13 @@ function RoomKeeperList(props) {
         download: false,
         print: false,
         searchable: false,
-      }
+      },
     },
   ];
   const options = {
     // serverSide: true,
     customToolbarSelect: (selectedRows, displayData, setSelectedRows) => {
-      const arr =
-      selectedRows.data.map((row) => {
+      const arr = selectedRows.data.map((row) => {
         return displayData[row.index].data[1].props.children;
       });
       // console.log(arr);
@@ -334,13 +343,19 @@ function RoomKeeperList(props) {
           </CardHeaderToolbar>
         </CardHeader>
         <CardBody className="p-0" style={{ zIndex: "0" }}>
-          <MUIDataTable
-            title=""
-            data={data}
-            columns={columns}
-            options={options}
-            className="card card-custom shadow-none border-bottom-0 table table-head-custom table-vertical-center overflow-hidden mb-0"
-          />
+          {!loading ? (
+            <MUIDataTable
+              title=""
+              data={data}
+              columns={columns}
+              options={options}
+              className="card card-custom shadow-none border-bottom-0 table table-head-custom table-vertical-center overflow-hidden mb-0"
+            />
+          ) : (
+            <div className="text-center mt-4 pt-4 pb-4 mb-4 text-info">
+              <CircularProgress color="inherit" size={50} />
+            </div>
+          )}
         </CardBody>
       </Card>
       {action === "all" && (

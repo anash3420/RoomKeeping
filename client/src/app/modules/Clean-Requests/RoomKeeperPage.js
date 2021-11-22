@@ -5,6 +5,7 @@ import Axios from "axios";
 import { RejectDialog } from "./components/Dialogs/RejectDialog";
 import SVG from "react-inlinesvg";
 import Rating from "react-rating";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import { toAbsoluteUrl } from "../../../_metronic/_helpers";
 import {
   Card,
@@ -33,6 +34,7 @@ function RoomKeeperPage(props) {
   const [rejectShow, setRejectShow] = useState(false);
   const [completeData, setcompleteData] = useState([]);
   const [completeShow, setcompleteShow] = useState(false);
+  const [loading, setLoading] = useState(false);
   const user = useSelector((state) => state.auth.user.user, shallowEqual);
   const hostel = user.hostel;
   const name = user.name;
@@ -43,6 +45,9 @@ function RoomKeeperPage(props) {
       })
       .catch((err) => {
         console.log(err);
+      })
+      .then(() => {
+        setLoading(false);
       });
   }, [props, hostel, name]);
 
@@ -68,28 +73,28 @@ function RoomKeeperPage(props) {
               {tableMeta.rowData[6] === "Completed" ? (
                 tableMeta.rowData[3] > 0 ? (
                   <>
-                      <Rating
-                        initialRating={tableMeta.rowData[3]}
-                        readonly
-                        emptySymbol={
-                          <span className="svg-icon svg-icon-lg">
-                            <SVG
-                              src={toAbsoluteUrl(
-                                "/media/svg/icons/General/Star.svg"
-                              )}
-                            />
-                          </span>
-                        }
-                        fullSymbol={
-                          <span className="svg-icon svg-icon-lg svg-icon-primary">
-                            <SVG
-                              src={toAbsoluteUrl(
-                                "/media/svg/icons/General/Star.svg"
-                              )}
-                            />
-                          </span>
-                        }
-                      />
+                    <Rating
+                      initialRating={tableMeta.rowData[3]}
+                      readonly
+                      emptySymbol={
+                        <span className="svg-icon svg-icon-lg">
+                          <SVG
+                            src={toAbsoluteUrl(
+                              "/media/svg/icons/General/Star.svg"
+                            )}
+                          />
+                        </span>
+                      }
+                      fullSymbol={
+                        <span className="svg-icon svg-icon-lg svg-icon-primary">
+                          <SVG
+                            src={toAbsoluteUrl(
+                              "/media/svg/icons/General/Star.svg"
+                            )}
+                          />
+                        </span>
+                      }
+                    />
                   </>
                 ) : (
                   <>
@@ -444,13 +449,19 @@ function RoomKeeperPage(props) {
           </div>
         </CardHeader>
         <CardBody style={{ zIndex: "0" }}>
-          <MUIDataTable
-            title=""
-            data={data}
-            columns={columns}
-            options={options}
-            className="card card-custom shadow-none border-bottom-0 table table-head-custom table-vertical-center overflow-hidden mb-0"
-          />
+          {!loading ? (
+            <MUIDataTable
+              title=""
+              data={data}
+              columns={columns}
+              options={options}
+              className="card card-custom shadow-none border-bottom-0 table table-head-custom table-vertical-center overflow-hidden mb-0"
+            />
+          ) : (
+            <div className="text-center mt-4 pt-4 pb-4 mb-4 text-info">
+              <CircularProgress color="inherit" size={50} />
+            </div>
+          )}
         </CardBody>
       </Card>
       <RejectDialog

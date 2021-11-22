@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector, shallowEqual } from "react-redux";
 import MUIDataTable from "mui-datatables";
 import Axios from "axios";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import { toAbsoluteUrl } from "../../../_metronic/_helpers";
 import {
   Card,
@@ -26,6 +27,7 @@ const bodyStyles = {
 };
 function Suggestions() {
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const user = useSelector((state) => state.auth.user.user, shallowEqual);
   const hostel = user.hostel;
   const id = user._id;
@@ -38,6 +40,9 @@ function Suggestions() {
       })
       .catch((err) => {
         console.log(err);
+      })
+      .then(() => {
+        setLoading(false);
       });
   }, [hostel, id, role]);
 
@@ -51,7 +56,10 @@ function Suggestions() {
         sortThirdClickReset: true,
         customHeadLabelRender: () => {
           return (
-            <span className="table-vertical-center ml-4 mr-4" style={headStyles}>
+            <span
+              className="table-vertical-center ml-4 mr-4"
+              style={headStyles}
+            >
               {role !== "roomkeeper" ? "RoomKeeper" : "Student"}
             </span>
           );
@@ -59,19 +67,24 @@ function Suggestions() {
         customBodyRender: (value, tableMeta) => {
           return (
             <>
-            <div className="symbol symbol-35 symbol-light mr-4 ml-4">
+              <div className="symbol symbol-35 symbol-light mr-4 ml-4">
+                <span
+                  className="symbol-label"
+                  style={{
+                    backgroundImage: `url(${
+                      tableMeta.rowData[role === "roomkeeper" ? 6 : 5]
+                        ? tableMeta.rowData[role === "roomkeeper" ? 6 : 5]
+                        : toAbsoluteUrl("/media/users/blank.png")
+                    })`,
+                  }}
+                ></span>
+              </div>
               <span
-                className="symbol-label"
-                style={{
-                  backgroundImage: `url(${
-                    tableMeta.rowData[role === "roomkeeper" ?  6: 5]
-                      ? tableMeta.rowData[role === "roomkeeper" ?  6: 5]
-                      : toAbsoluteUrl("/media/users/blank.png")
-                  })`,
-                }}
-              ></span>
-            </div>
-            <span className="align-top font-weight-bold text-muted font-size-lg" style={{lineHeight: 2.5}} >{value}</span>
+                className="align-top font-weight-bold text-muted font-size-lg"
+                style={{ lineHeight: 2.5 }}
+              >
+                {value}
+              </span>
             </>
           );
         },
@@ -95,20 +108,25 @@ function Suggestions() {
         customBodyRender: (value, tableMeta) => {
           return (
             <>
-            <div className="symbol symbol-35 symbol-light mr-4 ml-4">
+              <div className="symbol symbol-35 symbol-light mr-4 ml-4">
+                <span
+                  className="symbol-label"
+                  style={{
+                    backgroundImage: `url(${
+                      tableMeta.rowData[6]
+                        ? tableMeta.rowData[6]
+                        : toAbsoluteUrl("/media/users/blank.png")
+                    })`,
+                  }}
+                ></span>
+              </div>
               <span
-                className="symbol-label"
-                style={{
-                  backgroundImage: `url(${
-                    tableMeta.rowData[6]
-                      ? tableMeta.rowData[6]
-                      : toAbsoluteUrl("/media/users/blank.png")
-                  })`,
-                }}
-              ></span>
-            </div>
-            <span className="align-top font-weight-bold text-muted font-size-lg" style = {{lineHeight: 2.5}}>{value}</span>
-            </> 
+                className="align-top font-weight-bold text-muted font-size-lg"
+                style={{ lineHeight: 2.5 }}
+              >
+                {value}
+              </span>
+            </>
           );
         },
       },
@@ -128,12 +146,10 @@ function Suggestions() {
           );
         },
         customBodyRender: (value) => {
-          return (
-            <span style={bodyStyles}>{value}</span>
-          )
+          return <span style={bodyStyles}>{value}</span>;
+        },
       },
-    }
-  },
+    },
     {
       name: "date",
       label: "Date",
@@ -149,9 +165,7 @@ function Suggestions() {
           );
         },
         customBodyRender: (value) => {
-          return (
-            <span style={bodyStyles}>{value}</span>
-          )
+          return <span style={bodyStyles}>{value}</span>;
         },
       },
     },
@@ -163,22 +177,27 @@ function Suggestions() {
         sort: false,
         customHeadLabelRender: () => {
           return (
-            <span className="table-vertical-center text-warning" style={headStyles}>
+            <span
+              className="table-vertical-center text-warning"
+              style={headStyles}
+            >
               *Suggestion*
             </span>
           );
         },
         customBodyRender: (value) => {
           return (
-            <span className="text-left font-weight-dark text-muted">{value}</span>
-          )
+            <span className="text-left font-weight-dark text-muted">
+              {value}
+            </span>
+          );
         },
       },
     },
     {
       name: "roomKeeperImg",
       options: {
-        display: 'excluded',
+        display: "excluded",
         filter: false,
         sort: false,
         print: false,
@@ -188,7 +207,7 @@ function Suggestions() {
     {
       name: "studentImg",
       options: {
-        display: 'excluded',
+        display: "excluded",
         filter: false,
         sort: false,
         print: false,
@@ -253,13 +272,19 @@ function Suggestions() {
           <CardHeaderToolbar></CardHeaderToolbar>
         </CardHeader>
         <CardBody className="p-0" style={{ zIndex: "0" }}>
-          <MUIDataTable
-            title="Suggestions Table"
-            data={data}
-            columns={columns}
-            options={options}
-            className="card card-custom shadow-none border-bottom-0 table table-head-custom table-vertical-center overflow-hidden mb-0"
-          />
+          {!loading ? (
+            <MUIDataTable
+              title="Suggestions Table"
+              data={data}
+              columns={columns}
+              options={options}
+              className="card card-custom shadow-none border-bottom-0 table table-head-custom table-vertical-center overflow-hidden mb-0"
+            />
+          ) : (
+            <div className="text-center mt-4 pt-4 pb-4 mb-4 text-info">
+              <CircularProgress color="inherit" size={50} />
+            </div>
+          )}
         </CardBody>
       </Card>
     </>

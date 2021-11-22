@@ -3,6 +3,7 @@ import { useSelector, shallowEqual } from "react-redux";
 import MUIDataTable from "mui-datatables";
 import Axios from "axios";
 import { DeleteDialog } from "../UI/DeleteDialog";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import SVG from "react-inlinesvg";
 import { toAbsoluteUrl } from "../../../../../../_metronic/_helpers";
 import {
@@ -32,6 +33,7 @@ function StudentList(props) {
   const [show, setShow] = useState(false);
   const [action, setAction] = useState("");
   const [deleteData, setDeleteData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const hostel = useSelector(
     (state) => state.auth.user.user.hostel,
     shallowEqual
@@ -44,6 +46,8 @@ function StudentList(props) {
       })
       .catch((err) => {
         console.log(err);
+      }).then(() => {
+        setLoading(false);
       });
   }, [hostel, props]);
 
@@ -87,12 +91,12 @@ function StudentList(props) {
               </div>
               <span
                 className="align-top"
-                style={{...bodyStyles, lineHeight: 3 }}
+                style={{ ...bodyStyles, lineHeight: 3 }}
               >
                 {value}
               </span>
             </>
-          )
+          );
         },
       },
     },
@@ -218,14 +222,13 @@ function StudentList(props) {
         download: false,
         print: false,
         searchable: false,
-      }
+      },
     },
   ];
   const options = {
     // serverSide: true,
     customToolbarSelect: (selectedRows, displayData, setSelectedRows) => {
-      const arr =
-      selectedRows.data.map((row) => {
+      const arr = selectedRows.data.map((row) => {
         return displayData[row.index].data[1].props.children;
       });
       return (
@@ -317,13 +320,19 @@ function StudentList(props) {
           </CardHeaderToolbar>
         </CardHeader>
         <CardBody style={{ zIndex: "0" }}>
-          <MUIDataTable
-            title=""
-            data={data}
-            columns={columns}
-            options={options}
-            className="card card-custom shadow-none border-bottom-0 table table-head-custom table-vertical-center overflow-hidden mb-0"
-          />
+          {!loading ? (
+            <MUIDataTable
+              title=""
+              data={data}
+              columns={columns}
+              options={options}
+              className="card card-custom shadow-none border-bottom-0 table table-head-custom table-vertical-center overflow-hidden mb-0"
+            />
+          ) : (
+            <div className="text-center mt-4 pt-4 pb-4 mb-4 text-info">
+              <CircularProgress color="inherit" size={50} />
+            </div>
+          )}
         </CardBody>
       </Card>
       {action === "all" && (

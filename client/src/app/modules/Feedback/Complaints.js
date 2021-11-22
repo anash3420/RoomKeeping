@@ -3,6 +3,7 @@ import { useSelector, shallowEqual } from "react-redux";
 import MUIDataTable from "mui-datatables";
 import Axios from "axios";
 import { toAbsoluteUrl } from "../../../_metronic/_helpers";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import {
   Card,
   CardBody,
@@ -30,6 +31,7 @@ function Complaints() {
   const hostel = user.hostel;
   const id = user._id;
   const role = useSelector(({ auth }) => auth.user.role);
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     Axios.get(`/api/complaints?hostel=${hostel}&role=${role}&id=${id}`)
       .then((response) => {
@@ -38,6 +40,8 @@ function Complaints() {
       })
       .catch((err) => {
         console.log(err);
+      }).then(() => {
+        setLoading(false);
       });
   }, [hostel, id, role]);
 
@@ -253,13 +257,15 @@ function Complaints() {
           <CardHeaderToolbar></CardHeaderToolbar>
         </CardHeader>
         <CardBody className="p-0" style={{ zIndex: "0" }}>
-          <MUIDataTable
+          {!loading ? <MUIDataTable
             title="Suggestions Table"
             data={data}
             columns={columns}
             options={options}
             className="card card-custom shadow-none border-bottom-0 table table-head-custom table-vertical-center overflow-hidden mb-0"
-          />
+          /> : <div className="text-center mt-4 pt-4 pb-4 mb-4 text-info">
+              <CircularProgress color="inherit" size={50} />
+            </div>}
         </CardBody>
       </Card>
     </>
