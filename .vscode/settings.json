@@ -1,5 +1,0 @@
-{
-    "appService.showBuildDuringDeployPrompt": false,
-    "appService.defaultWebAppToDeploy": "/subscriptions/a63d56b8-569a-4116-ac38-41ff5375ea4e/resourceGroups/AppServiceTutorial-rg/providers/Microsoft.Web/sites/roomkeeping",
-    "appService.deploySubpath": "."
-}
