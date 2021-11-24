@@ -33,7 +33,7 @@ function StudentList(props) {
   const [show, setShow] = useState(false);
   const [action, setAction] = useState("");
   const [deleteData, setDeleteData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const hostel = useSelector(
     (state) => state.auth.user.user.hostel,
     shallowEqual
