@@ -274,7 +274,7 @@ function Suggestions() {
         <CardBody className="p-0" style={{ zIndex: "0" }}>
           {!loading ? (
             <MUIDataTable
-              title="Suggestions Table"
+              title=""
               data={data}
               columns={columns}
               options={options}
