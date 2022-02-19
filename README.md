@@ -4,7 +4,7 @@ https://roomkeeping.herokuapp.com/about
 
 System Design
 4.1 Statechart Diagram
-
+![](https://github.com/anash3420/RoomKeeping/blob/images/Activity.png?raw=true)
 Fig. 1: Statechart diagram for the system 
 
 This statechart Diagram shows the flow of how this application works and what a person can do with it. First of all, there is a login page, where login credentials are entered. On the backend the system will check if the account belongs to a student, roomkeeper or an admin, and direct the application to the matched dashboard of the logged account. There is another option too where if the person forgets password he/she can gain it back by following the procedures described in the “forgot password”. 
