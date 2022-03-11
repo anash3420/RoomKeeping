@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/a63d56b8-569a-4116-ac38-41ff5375ea4e/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/roomkeeping",
+    "appService.deploySubpath": "."
+}

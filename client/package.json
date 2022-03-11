@@ -2,7 +2,7 @@
     "name": "roomkeeping",
     "version": "1.0.0",
     "private": false,
-    "homepage": "https://roomkeeping.herokuapp.com",
+    "homepage": "https://roomkeeping.azurewebsites.net",
     "scripts": {
         "start": "react-scripts start -o",
         "build": "react-scripts build",
