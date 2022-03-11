@@ -16,9 +16,9 @@ export default function App({ store, persistor, basename }) {
     /* Provide Redux store */
     <Provider store={store}>
       {/* Asynchronously persist redux stores and show `SplashScreen` while it's loading. */}
-      {/* <PersistGate persistor={persistor} loading={<LayoutSplashScreen />}> */}
+      <PersistGate persistor={persistor} loading={<LayoutSplashScreen />}>
         {/* Add high level `Suspense` in case if was not handled inside the React tree. */}
-        {/* <React.Suspense fallback={<LayoutSplashScreen />}> */}
+        <React.Suspense fallback={<LayoutSplashScreen />}>
           {/* Override `basename` (e.g: `homepage` in `package.json`) */}
           <BrowserRouter basename={basename}>
             {/*This library only returns the location that has been active before the recent location change in the current window lifetime.*/}
@@ -32,8 +32,8 @@ export default function App({ store, persistor, basename }) {
               </I18nProvider>
             </MaterialThemeProvider>
           </BrowserRouter>
-        {/* </React.Suspense> */}
-      {/* </PersistGate> */}
+        </React.Suspense>
+      </PersistGate>
     </Provider>
   );
 }
