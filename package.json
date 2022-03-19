@@ -29,6 +29,7 @@
     "nodemailer": "^6.6.5",
     "nodemailer-express-handlebars": "^4.0.0",
     "path": "^0.12.7",
+    "sharp": "^0.30.3",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

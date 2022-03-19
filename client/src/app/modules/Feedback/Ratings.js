@@ -37,12 +37,37 @@ function Ratings() {
   useEffect(() => {
     Axios.get(`/api/ratings?hostel=${hostel}&role=${role}&id=${id}`)
       .then((response) => {
-        // console.log(response.data);
-        setData(response.data);
+        console.log(response.data);
+        const data = response.data.data;
+        data.forEach((row) => {
+          if (role === "admin") {
+            for (let i = 0; i < response.data.roomKeeperImg.length; i++) {
+              if (row.roomKeeperId === response.data.roomKeeperImg[i].id) {
+                row.roomKeeperImg = response.data.roomKeeperImg[i].profileImg;
+                break;
+              }
+            }
+          for (let i = 0; i < response.data.studentImg.length; i++) {
+            if (row.studentId === response.data.studentImg[i].id) {
+              row.studentImg = response.data.studentImg[i].profileImg;
+              break;
+            }
+          }
+        } else if ( role === "roomkeeper") {
+          for (let i = 0; i < response.data.studentImg.length; i++) {
+            if (row.studentId === response.data.studentImg[i].id) {
+              row.studentImg = response.data.studentImg[i].profileImg;
+              break;
+            }
+          }
+        }
+        });
+        setData(data);
       })
       .catch((err) => {
         console.log(err);
-      }).then(() => {
+      })
+      .then(() => {
         setLoading(false);
       });
   }, [hostel, id, role]);
@@ -50,7 +75,7 @@ function Ratings() {
   const columns = [
     {
       name: "name",
-      label: "RoomKeeper",
+      label: role !== "roomkeeper" ? "RoomKeeper" : "Student",
       options: {
         filter: true,
         sort: true,
@@ -73,8 +98,8 @@ function Ratings() {
                   className="symbol-label"
                   style={{
                     backgroundImage: `url(${
-                      tableMeta.rowData[6]
-                        ? tableMeta.rowData[6]
+                      tableMeta.rowData[role === "roomkeeper" ? 7 : 6]
+                        ? tableMeta.rowData[role === "roomkeeper" ? 7 : 6]
                         : toAbsoluteUrl("/media/users/blank.png")
                     })`,
                   }}
@@ -93,15 +118,16 @@ function Ratings() {
     },
     {
       name: "student",
+      label: "Student",
       options: {
-        filter: true,
+        filter: role !== "roomkeeper" ? true : false,
         sort: true,
         sortThirdClickReset: true,
         display: role === "admin" ? true : "excluded",
         customHeadLabelRender: () => {
           return (
             <span className="table-vertical-center" style={headStyles}>
-              Student
+              Rated By
             </span>
           );
         },
@@ -230,7 +256,7 @@ function Ratings() {
       },
     },
     {
-      name: "img",
+      name: "roomKeeperImg",
       options: {
         display: "excluded",
         filter: false,

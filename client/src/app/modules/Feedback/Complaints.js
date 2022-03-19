@@ -36,7 +36,31 @@ function Complaints() {
     Axios.get(`/api/complaints?hostel=${hostel}&role=${role}&id=${id}`)
       .then((response) => {
         console.log(response.data);
-        setData(response.data);
+        const data = response.data.data;
+        data.forEach((row) => {
+          if (role === "admin") {
+            for (let i = 0; i < response.data.roomKeeperImg.length; i++) {
+              if (row.roomKeeperId === response.data.roomKeeperImg[i].id) {
+                row.roomKeeperImg = response.data.roomKeeperImg[i].profileImg;
+                break;
+              }
+            }
+          for (let i = 0; i < response.data.studentImg.length; i++) {
+            if (row.studentId === response.data.studentImg[i].id) {
+              row.studentImg = response.data.studentImg[i].profileImg;
+              break;
+            }
+          }
+        } else if ( role === "roomkeeper") {
+          for (let i = 0; i < response.data.studentImg.length; i++) {
+            if (row.studentId === response.data.studentImg[i].id) {
+              row.studentImg = response.data.studentImg[i].profileImg;
+              break;
+            }
+          }
+        }
+        });
+        setData(data);
       })
       .catch((err) => {
         console.log(err);

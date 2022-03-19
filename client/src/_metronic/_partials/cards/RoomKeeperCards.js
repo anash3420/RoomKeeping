@@ -71,7 +71,7 @@ function RoomKeeperCards(props) {
                 </div>
                 {/* eslint-disable-next-line */}
                 <Link
-                  to="#"
+                  to="/complaints"
                   className="d-flex flex-column text-hover-danger text-dark font-weight-bold font-size-h4 mb-3"
                 >
                   <h1>{props.complaints}</h1>COMPLAINTS LODGED

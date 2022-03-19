@@ -2,6 +2,7 @@
 require("dotenv").config();
 const path = require("path");
 const fs = require("fs");
+const sharp = require("sharp");
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -27,12 +28,11 @@ const {
 } = require("./server/models/model");
 
 const app = express();
-
 // ---------------------------------------------------------Express Handling------------------------------------------------------- //
 app.use(cors());
 app.use(express.json({ limit: "30mb", extended: true }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));
-app.use(express.static(process.cwd() +"/client/build"));
+app.use(express.static(process.cwd() + "/client/build"));
 
 // -------------------------------------------------Connecting to database----------------------------------------------------------//
 mongoose
@@ -372,13 +372,29 @@ app.post("/api/updateUser", upload.single("profileimg"), async (req, res) => {
     email: req.body.email,
   };
   if (req.file) {
+    fs.writeFile(
+      `${req.file.destination}/temp-${req.file.filename}`,
+      "",
+      (err) => {
+        if (err) console.log(err);
+        console.log("File Created Successfully");
+      }
+    );
+
+    await sharp(req.file.path)
+      .resize(120, 120)
+      .jpeg({ quality: 100 })
+      .toFile(`${req.file.destination}/temp-${req.file.filename}`);
+
+    console.log(`${req.file.destination}/${req.file.filename}`);
+
     user = {
       ...user,
       profileimg: {
         data: fs.readFileSync(
-          path.join(__dirname + "/images/" + req.file.filename)
+          path.join(__dirname + "/server/images/temp-" + req.file.filename)
         ),
-        contentType: req.file.mimetype,
+        contentType: "image/jpeg",
       },
     };
   }
@@ -391,7 +407,7 @@ app.post("/api/updateUser", upload.single("profileimg"), async (req, res) => {
   } else if (role === "student") {
     updatedUser = await Student.findById(req.body.id);
   } else {
-    res.status(404).send("Select an appropriate Role");
+    res.status(204).send("Select an appropriate Role");
   }
 
   updatedUser.name = user.name;
@@ -401,7 +417,17 @@ app.post("/api/updateUser", upload.single("profileimg"), async (req, res) => {
     if (req.file) {
       updatedUser.profileimg = user.profileimg;
       fs.unlink(
-        path.join(__dirname + "/images/" + req.file.filename),
+        path.join(__dirname + "/server/images/" + req.file.filename),
+        (err) => {
+          if (err) {
+            console.error(err);
+          } else {
+            console.log("Deleted Successfully!");
+          }
+        }
+      );
+      fs.unlink(
+        path.join(__dirname + "/server/images/temp-" + req.file.filename),
         (err) => {
           if (err) {
             console.error(err);
@@ -563,7 +589,6 @@ app.post("/api/deleteAllUsers", async (req, res) => {
   const hostel = req.query.hostel;
   const role = req.query.role;
   if (role === "roomkeeper") {
-    
     await RoomKeeper.deleteMany({ hostel });
     await CleanRequest.deleteMany({ hostel });
     await Feedback.deleteMany({ hostel });
@@ -571,14 +596,12 @@ app.post("/api/deleteAllUsers", async (req, res) => {
     await Suggestion.deleteMany({ hostel });
     res.status(200).send("Successfully Deleted All RoomKeepers!");
   } else if (role === "student") {
-    
     await Student.deleteMany({ hostel });
     await CleanRequest.deleteMany({ hostel });
     await Feedback.deleteMany({ hostel });
     await Complaint.deleteMany({ hostel });
     await Suggestion.deleteMany({ hostel });
     res.status(200).send("Successfully Deleted All Students!");
-
   } else {
     res.status(204).send("Please Select a Valid Role");
   }
@@ -596,7 +619,6 @@ app.post("/api/deleteUsers", async (req, res) => {
       await Feedback.deleteMany({ studentId: student._id });
       await Complaint.deleteMany({ studentId: student._id });
       await Suggestion.deleteMany({ studentId: student._id });
-
     } else if (role === "roomkeeper") {
       const roomKeeper = await RoomKeeper.findOne({ email });
       await RoomKeeper.deleteOne({ email });
@@ -604,25 +626,29 @@ app.post("/api/deleteUsers", async (req, res) => {
       await Feedback.deleteMany({ roomKeeperId: roomKeeper._id });
       await Complaint.deleteMany({ roomKeeperId: roomKeeper._id });
       await Suggestion.deleteMany({ roomKeeperId: roomKeeper._id });
-
     } else {
       res.status(400).send("Please Select a Valid Role!");
     }
   } else {
     if (role === "student") {
       const remStudents = req.body.data;
-      const students = await Student.find({ hostel, email: {$in: remStudents} }).select("-password");
+      const students = await Student.find({
+        hostel,
+        email: { $in: remStudents },
+      }).select("-password");
 
       const studentId = students.map((student) => student._id);
-      await Student.deleteMany({ _id: {$in: studentId} });
-      await CleanRequest.deleteMany({ studentId: {$in: studentId} });
-      await Feedback.deleteMany({ studentId: {$in: studentId} });
-      await Complaint.deleteMany({ studentId: {$in: studentId} });
-      await Suggestion.deleteMany({ studentId: {$in: studentId} });
-
+      await Student.deleteMany({ _id: { $in: studentId } });
+      await CleanRequest.deleteMany({ studentId: { $in: studentId } });
+      await Feedback.deleteMany({ studentId: { $in: studentId } });
+      await Complaint.deleteMany({ studentId: { $in: studentId } });
+      await Suggestion.deleteMany({ studentId: { $in: studentId } });
     } else if (role === "roomkeeper") {
       const remRoomKeepers = req.body.data;
-      const roomKeepers = await RoomKeeper.find({ hostel, email: {$in: remRoomKeepers} }).select("-password");
+      const roomKeepers = await RoomKeeper.find({
+        hostel,
+        email: { $in: remRoomKeepers },
+      }).select("-password");
       // console.log(roomKeepers);
       const roomKeeperId = roomKeepers.map((roomKeeper) => {
         return roomKeeper._id;
@@ -632,11 +658,13 @@ app.post("/api/deleteUsers", async (req, res) => {
       });
 
       await RoomKeeper.deleteMany({ hostel, email: { $in: remRoomKeepers } });
-      await CleanRequest.deleteMany({ hostel, roomkeeper: { $in: roomKeeperName } });
+      await CleanRequest.deleteMany({
+        hostel,
+        roomkeeper: { $in: roomKeeperName },
+      });
       await Feedback.deleteMany({ roomKeeperId: { $in: roomKeeperId } });
       await Complaint.deleteMany({ roomKeeperId: { $in: roomKeeperId } });
       await Suggestion.deleteMany({ roomKeeperId: { $in: roomKeeperId } });
-
     } else {
       res.status(400).send("Select a Valid Role to Delete!");
     }
@@ -738,7 +766,7 @@ app.get("/api/admin/dashboard", async (req, res) => {
 
 //--------------------------RoomKeeper Dashboard---------------------------//
 app.get("/api/roomkeeper/dashboard", async (req, res) => {
-  const id = req.query.roomKeeperId;
+  const id = req.query.id;
   const name = req.query.name;
   const hostel = req.query.hostel;
   const completedRequests = await CleanRequest.find({
@@ -747,7 +775,7 @@ app.get("/api/roomkeeper/dashboard", async (req, res) => {
     requestStatus: "Completed",
   });
   const reqLength = completedRequests.length;
-  const complaints = await Complaint.find({ roomKeeperId: id });
+  const complaints = await Complaint.find({ roomKeeperId: id }).select("_id");
   const complaintsLength = complaints.length;
   const scheduledRequests = await CleanRequest.find({
     hostel,
@@ -780,7 +808,7 @@ app.get("/api/student/dashboard", async (req, res) => {
 
   let requests = await CleanRequest.find({ studentId: id }).select("-__v");
   const reqLength = requests.length;
-  const completedRequests =requests.filter((value) => {
+  const completedRequests = requests.filter((value) => {
     return value.requestStatus === "Completed";
   }).length;
   const dashRequests = requests.filter((value) => {
@@ -1041,6 +1069,8 @@ app.get("/api/ratings", async (req, res) => {
   const id = req.query.id;
 
   if (role === "admin") {
+    let roomKeeperImg = [];
+    let studentImg = [];
     const ratings = await Feedback.find({ hostel }).select("-_id -__v");
     const ratingData = ratings.map(async (rating) => {
       const roomKeeper = await RoomKeeper.findById(rating.roomKeeperId).select(
@@ -1049,29 +1079,53 @@ app.get("/api/ratings", async (req, res) => {
       const student = await Student.findById(rating.studentId).select(
         "name profileimg"
       );
-      let studentImg = undefined;
-      let img = undefined;
       if (roomKeeper.profileimg.contentType !== undefined) {
-        img =
-          "data:image/" +
-          roomKeeper.profileimg.contentType +
-          ";base64," +
-          roomKeeper.profileimg.data.toString("base64");
+        let flag = false;
+        roomKeeperImg.every((img) => {
+          if (String(img.id) === String(roomKeeper._id)) {
+            flag = true;
+            return false;
+          } else {
+            return true;
+          }
+        });
+
+        if (!flag) {
+          const img =
+            "data:image/" +
+            roomKeeper.profileimg.contentType +
+            ";base64," +
+            roomKeeper.profileimg.data.toString("base64");
+          roomKeeperImg.push({ id: String(roomKeeper._id), profileImg: img });
+        }
       }
       if (student.profileimg.contentType !== undefined) {
-        studentImg =
-          "data:image/" +
-          student.profileimg.contentType +
-          ";base64," +
-          student.profileimg.data.toString("base64");
+        let flag = false;
+        studentImg.every((img) => {
+          if (String(img.id) === String(student._id)) {
+            flag = true;
+            return false;
+          } else {
+            return true;
+          }
+        });
+
+        if (!flag) {
+          const img =
+            "data:image/" +
+            student.profileimg.contentType +
+            ";base64," +
+            student.profileimg.data.toString("base64");
+          studentImg.push({ id: String(student._id), profileImg: img });
+        }
       }
       const data = await CleanRequest.findById(rating.requestId).select(
-        "-_id -__v"
+        "date room"
       );
       return {
+        studentId: String(student._id),
+        roomKeeperId: String(roomKeeper._id),
         name: roomKeeper.name,
-        img,
-        studentImg,
         student: student.name,
         rating: rating.rating,
         message: rating.message,
@@ -1083,12 +1137,13 @@ app.get("/api/ratings", async (req, res) => {
       .then((data) => {
         // console.log(data);
         data.reverse();
-        res.status(200).send(data);
+        res.status(200).send({ data, roomKeeperImg, studentImg });
       })
       .catch((err) => {
         console.log(err);
       });
   } else if (role === "roomkeeper") {
+    let studentImg = [];
     const ratings = await Feedback.find({ roomKeeperId: id }).select(
       "-_id -__v"
     );
@@ -1096,20 +1151,34 @@ app.get("/api/ratings", async (req, res) => {
       const student = await Student.findById(rating.studentId).select(
         "name profileimg"
       );
-      let img = undefined;
+
       if (student.profileimg.contentType !== undefined) {
-        img =
-          "data:image/" +
-          student.profileimg.contentType +
-          ";base64," +
-          student.profileimg.data.toString("base64");
+        let flag = false;
+        studentImg.every((img) => {
+          if (String(img.id) === String(student._id)) {
+            flag = true;
+            return false;
+          } else {
+            return true;
+          }
+        });
+
+        if (!flag) {
+          const img =
+            "data:image/" +
+            student.profileimg.contentType +
+            ";base64," +
+            student.profileimg.data.toString("base64");
+          studentImg.push({ id: String(student._id), profileImg: img });
+        }
       }
+
       const data = await CleanRequest.findById(rating.requestId).select(
-        "-_id -__v"
+        "date room"
       );
       return {
         name: student.name,
-        img,
+        studentId: String(student._id),
         rating: rating.rating,
         message: rating.message,
         date: data.date,
@@ -1120,7 +1189,7 @@ app.get("/api/ratings", async (req, res) => {
       .then((data) => {
         // console.log(data);
         data.reverse();
-        res.status(200).send(data);
+        res.status(200).send({ data, studentImg });
       })
       .catch((err) => {
         console.log(err);
@@ -1210,6 +1279,8 @@ app.get("/api/suggestions", async (req, res) => {
   const id = req.query.id;
 
   if (role === "admin") {
+    let roomKeeperImg = [];
+    let studentImg = [];
     const suggestions = await Suggestion.find({ hostel }).select("-_id -__v");
     const suggestionData = suggestions.map(async (suggestion) => {
       const roomKeeper = await RoomKeeper.findById(
@@ -1218,29 +1289,53 @@ app.get("/api/suggestions", async (req, res) => {
       const student = await Student.findById(suggestion.studentId).select(
         "name profileimg"
       );
-      let studentImg = undefined;
-      let roomKeeperImg = undefined;
       if (roomKeeper.profileimg.contentType !== undefined) {
-        roomKeeperImg =
-          "data:image/" +
-          roomKeeper.profileimg.contentType +
-          ";base64," +
-          roomKeeper.profileimg.data.toString("base64");
+        let flag = false;
+        roomKeeperImg.every((img) => {
+          if (String(img.id) === String(roomKeeper._id)) {
+            flag = true;
+            return false;
+          } else {
+            return true;
+          }
+        });
+
+        if (!flag) {
+          const img =
+            "data:image/" +
+            roomKeeper.profileimg.contentType +
+            ";base64," +
+            roomKeeper.profileimg.data.toString("base64");
+          roomKeeperImg.push({ id: String(roomKeeper._id), profileImg: img });
+        }
       }
       if (student.profileimg.contentType !== undefined) {
-        studentImg =
-          "data:image/" +
-          student.profileimg.contentType +
-          ";base64," +
-          student.profileimg.data.toString("base64");
+        let flag = false;
+        studentImg.every((img) => {
+          if (String(img.id) === String(student._id)) {
+            flag = true;
+            return false;
+          } else {
+            return true;
+          }
+        });
+
+        if (!flag) {
+          const img =
+            "data:image/" +
+            student.profileimg.contentType +
+            ";base64," +
+            student.profileimg.data.toString("base64");
+          studentImg.push({ id: String(student._id), profileImg: img });
+        }
       }
       const data = await CleanRequest.findById(
         suggestion.details.requestId
-      ).select("-_id -__v");
+      ).select("date room");
       return {
+        studentId: String(student._id),
+        roomKeeperId: String(roomKeeper._id),
         name: roomKeeper.name,
-        roomKeeperImg,
-        studentImg,
         student: student.name,
         suggestion: suggestion.details.message,
         date: data.date,
@@ -1251,12 +1346,13 @@ app.get("/api/suggestions", async (req, res) => {
       .then((data) => {
         // console.log(data);
         data.reverse();
-        res.status(200).send(data);
+        res.status(200).send({ data, roomKeeperImg, studentImg });
       })
       .catch((err) => {
         console.log(err);
       });
   } else if (role === "roomkeeper") {
+    let studentImg = [];
     const suggestions = await Suggestion.find({ roomKeeperId: id }).select(
       "-_id -__v"
     );
@@ -1264,20 +1360,34 @@ app.get("/api/suggestions", async (req, res) => {
       const student = await Student.findById(suggestion.studentId).select(
         "name profileimg"
       );
-      let studentImg = undefined;
+
       if (student.profileimg.contentType !== undefined) {
-        studentImg =
-          "data:image/" +
-          student.profileimg.contentType +
-          ";base64," +
-          student.profileimg.data.toString("base64");
+        let flag = false;
+        studentImg.every((img) => {
+          if (String(img.id) === String(student._id)) {
+            flag = true;
+            return false;
+          } else {
+            return true;
+          }
+        });
+
+        if (!flag) {
+          const img =
+            "data:image/" +
+            student.profileimg.contentType +
+            ";base64," +
+            student.profileimg.data.toString("base64");
+          studentImg.push({ id: String(student._id), profileImg: img });
+        }
       }
+
       const data = await CleanRequest.findById(
         suggestion.details.requestId
-      ).select("-_id -__v");
+      ).select("date room");
       return {
         name: student.name,
-        studentImg,
+        studentId: String(student._id),
         suggestion: suggestion.details.message,
         date: data.date,
         room: data.room,
@@ -1287,7 +1397,7 @@ app.get("/api/suggestions", async (req, res) => {
       .then((data) => {
         // console.log(data);
         data.reverse();
-        res.status(200).send(data);
+        res.status(200).send({ data, studentImg });
       })
       .catch((err) => {
         console.log(err);
@@ -1297,12 +1407,16 @@ app.get("/api/suggestions", async (req, res) => {
   }
 });
 
+//---------------------------Complaints-------------------------//
+
 app.get("/api/complaints", async (req, res) => {
   const role = req.query.role;
   const hostel = req.query.hostel;
   const id = req.query.id;
-  
+
   if (role === "admin") {
+    let roomKeeperImg = [];
+    let studentImg = [];
     const complaints = await Complaint.find({ hostel }).select("-_id -__v");
     const complaintData = complaints.map(async (complaint) => {
       const roomKeeper = await RoomKeeper.findById(
@@ -1311,29 +1425,53 @@ app.get("/api/complaints", async (req, res) => {
       const student = await Student.findById(complaint.studentId).select(
         "name profileimg"
       );
-      let studentImg = undefined;
-      let roomKeeperImg = undefined;
       if (roomKeeper.profileimg.contentType !== undefined) {
-        roomKeeperImg =
-          "data:image/" +
-          roomKeeper.profileimg.contentType +
-          ";base64," +
-          roomKeeper.profileimg.data.toString("base64");
+        let flag = false;
+        roomKeeperImg.every((img) => {
+          if (String(img.id) === String(roomKeeper._id)) {
+            flag = true;
+            return false;
+          } else {
+            return true;
+          }
+        });
+
+        if (!flag) {
+          const img =
+            "data:image/" +
+            roomKeeper.profileimg.contentType +
+            ";base64," +
+            roomKeeper.profileimg.data.toString("base64");
+          roomKeeperImg.push({ id: String(roomKeeper._id), profileImg: img });
+        }
       }
       if (student.profileimg.contentType !== undefined) {
-        studentImg =
-          "data:image/" +
-          student.profileimg.contentType +
-          ";base64," +
-          student.profileimg.data.toString("base64");
+        let flag = false;
+        studentImg.every((img) => {
+          if (String(img.id) === String(student._id)) {
+            flag = true;
+            return false;
+          } else {
+            return true;
+          }
+        });
+
+        if (!flag) {
+          const img =
+            "data:image/" +
+            student.profileimg.contentType +
+            ";base64," +
+            student.profileimg.data.toString("base64");
+          studentImg.push({ id: String(student._id), profileImg: img });
+        }
       }
       const data = await CleanRequest.findById(
         complaint.details.requestId
-      ).select("-_id -__v");
+      ).select("date room");
       return {
+        studentId: String(student._id),
+        roomKeeperId: String(roomKeeper._id),
         name: roomKeeper.name,
-        roomKeeperImg,
-        studentImg,
         student: student.name,
         complaint: complaint.details.message,
         date: data.date,
@@ -1344,12 +1482,13 @@ app.get("/api/complaints", async (req, res) => {
       .then((data) => {
         // console.log(data);
         data.reverse();
-        res.status(200).send(data);
+        res.status(200).send({ data, roomKeeperImg, studentImg });
       })
       .catch((err) => {
         console.log(err);
       });
   } else if (role === "roomkeeper") {
+    let studentImg = [];
     const complaints = await Complaint.find({ roomKeeperId: id }).select(
       "-_id -__v"
     );
@@ -1357,20 +1496,34 @@ app.get("/api/complaints", async (req, res) => {
       const student = await Student.findById(complaint.studentId).select(
         "name profileimg"
       );
-      let studentImg = undefined;
+
       if (student.profileimg.contentType !== undefined) {
-        studentImg =
-          "data:image/" +
-          student.profileimg.contentType +
-          ";base64," +
-          student.profileimg.data.toString("base64");
+        let flag = false;
+        studentImg.every((img) => {
+          if (String(img.id) === String(student._id)) {
+            flag = true;
+            return false;
+          } else {
+            return true;
+          }
+        });
+
+        if (!flag) {
+          const img =
+            "data:image/" +
+            student.profileimg.contentType +
+            ";base64," +
+            student.profileimg.data.toString("base64");
+          studentImg.push({ id: String(student._id), profileImg: img });
+        }
       }
+
       const data = await CleanRequest.findById(
         complaint.details.requestId
-      ).select("-_id -__v");
+      ).select("date room");
       return {
         name: student.name,
-        studentImg,
+        studentId: String(student._id),
         complaint: complaint.details.message,
         date: data.date,
         room: data.room,
@@ -1380,7 +1533,7 @@ app.get("/api/complaints", async (req, res) => {
       .then((data) => {
         // console.log(data);
         data.reverse();
-        res.status(200).send(data);
+        res.status(200).send({ data, studentImg });
       })
       .catch((err) => {
         console.log(err);
@@ -1392,7 +1545,7 @@ app.get("/api/complaints", async (req, res) => {
 
 // All other GET requests not handled before will return our React app
 app.get("*", (req, res) => {
-  res.sendFile(process.cwd()+"/client/build/index.html");
+  res.sendFile(process.cwd() + "/client/build/index.html");
 });
 
 //----------------------------------------------------Express Server----------------------------------------------------------------//
