@@ -1,6 +1,9 @@
 # RoomKeeping
-
+<h3>Landing Page:</h3>
 https://roomkeeping.herokuapp.com/about
+
+<h3>Login/Dashboard:</h3>
+https://roomkeeping.azurewebsites.net/auth/login
 
 # Statechart Diagram
 ![](./images/Activity.png?raw=true)
