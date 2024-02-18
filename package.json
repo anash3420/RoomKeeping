@@ -9,7 +9,7 @@
     "build": "cd client && npm install && npm run build"
   },
   "engines": {
-    "node": "21.6.2"
+    "node": ">=16.0.0"
   },
   "author": "Anash Shelat",
   "license": "ISC",
