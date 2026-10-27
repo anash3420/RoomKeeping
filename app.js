@@ -39,6 +39,8 @@ mongoose
   .connect(`${process.env.MONGO_URL}`, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    // MONGO_URL has no database path, which would default to the empty "test" db
+    dbName: process.env.MONGO_DB || "roomkeeping",
   })
   .then(() => {
     console.log("Connected to database ");
