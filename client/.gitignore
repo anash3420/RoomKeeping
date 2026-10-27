@@ -12,9 +12,6 @@
 # redactor
 /.idea
 
-# assets
-/client/src/_metronic/_assets
-/client/public/media
 
 # production
 /_site

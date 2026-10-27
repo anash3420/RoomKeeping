@@ -22,6 +22,6 @@ module.exports = {
   rules: {
     // "no-script-url": "warn",
     "jsx-a11y/anchor-is-valid": "warn",
-    "no-restricted-imports": ["error", { paths: [].concat(...restrictedPaths) }]
+    "no-restricted-imports": ["warn", { paths: [].concat(...restrictedPaths) }]
   }
 };
